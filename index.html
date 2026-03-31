@@ -1285,7 +1285,8 @@
             itemToAdd = {
                 id: prod.id,
                 sku: prod.sku,
-                name: currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name),
+                name_th: prod.name_th || prod.name,
+                name_en: prod.name_en || prod.name,
                 price: prod.price,
                 quantity: 1,
                 isPackage: true,
@@ -1311,7 +1312,8 @@
                         itemToAdd = {
                             id: selectedVariant.sku,
                             sku: selectedVariant.sku,
-                            name: `${currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name)} (${variantName.trim()})`,
+                            name_th: `${prod.name_th || prod.name} (${variantName.trim()})`,
+                            name_en: `${prod.name_en || prod.name} (${variantName.trim()})`,
                             price: selectedVariant.price,
                             quantity: 1,
                             isPackage: false,
@@ -1330,7 +1332,8 @@
                         itemToAdd = {
                             id: firstVariant.sku,
                             sku: firstVariant.sku,
-                            name: `${currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name)} (${variantName.trim()})`,
+                            name_th: `${prod.name_th || prod.name} (${variantName.trim()})`,
+                            name_en: `${prod.name_en || prod.name} (${variantName.trim()})`,
                             price: firstVariant.price,
                             quantity: 1,
                             isPackage: false,
@@ -1342,7 +1345,8 @@
                 itemToAdd = {
                     id: prod.id,
                     sku: prod.sku,
-                    name: currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name),
+                    name_th: prod.name_th || prod.name,
+                    name_en: prod.name_en || prod.name,
                     price: prod.base_price || prod.price || 0,
                     quantity: 1,
                     isPackage: false,
@@ -1390,7 +1394,8 @@
                     hasPackageL = true;
                 } else {
                     const skuLower = (item.sku || '').toLowerCase();
-                    const nameLower = (item.name || '').toLowerCase();
+                    const name = currentLang === 'th' ? item.name_th : item.name_en
+                    const nameLower = (name || '').toLowerCase();
                     if (skuLower === 'package-l' || skuLower === 'l' ||
                         nameLower.includes('package l')) {
                         hasPackageL = true;
@@ -1489,11 +1494,13 @@
         const cartHtml = cart.length === 0 ?
             '<div style="text-align: center; padding: 40px 20px; color: #999; font-size: 1rem;">🛒 Cart is empty</div>' :
             cart.map(item => {
+                const name = currentLang === 'th' ? item.name_th : item.name_en
                 const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
+                console.log(name, item);
 
                 const isPackageLItem = item.isPackage && (item.isPackageL === true ||
                     (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
-                    (item.name && item.name.toLowerCase().includes('package l')));
+                    (name && name.toLowerCase().includes('package l')));
 
                 const packageLBadge = isPackageLItem ?
                     '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
@@ -1502,7 +1509,7 @@
                 <div style="flex: 1;">
                     <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
                         <span style="background: #d9f0f2; color: #007883; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${escapeHtml(item.sku)}</span>
-                        <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(item.name)}</span>
+                        <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(name)}</span>
                         ${packageLBadge}
                     </div>
                     <div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB (${item.price.toLocaleString()} × ${item.quantity})</div>
@@ -2583,6 +2590,9 @@
 
         if (products.length > 0) {
             renderCategories();
+        }
+        if (cart.length > 0) {
+            updateCartUI();
         }
     });
 
