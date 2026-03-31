@@ -1,0 +1,4163 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>White Fox Studio — แคตตาล็อกสินค้า</title>
+
+    <!-- Preconnect to critical domains -->
+    <link rel="preconnect" href="https://bgawfptgxcwhggbdrxhv.supabase.co">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://bgawfptgxcwhggbdrxhv.supabase.co">
+
+    <style>
+        /* Критический CSS для быстрого отображения */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-nav: #ffffff;
+            --bg-button: #f1f5f9;
+            --bg-cart: #ffffff;
+            --bg-form: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #334155;
+            --text-muted: #546e7a;
+            --border-color: #e9eef2;
+            --border-dark: #d1d9e2;
+            --accent-primary: #007883;
+            --accent-hover: #0a6570;
+            --accent-light: #d9f0f2;
+            --shadow-color: rgba(0, 120, 131, 0.2);
+            --price-color: #007883;
+            --in-cart-bg: #e0f2f5;
+            --in-cart-text: #007883;
+            --success-bg: #e3f7e3;
+            --success-text: #2e7d5e;
+            --error-bg: #ffe8e5;
+            --error-text: #c44536;
+            --red-warning: #d32f2f;
+            --modal-overlay: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.4;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Минимальные стили для быстрого отображения */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        /* Остальные стили будут загружены после */
+    </style>
+
+    <!-- Preload критических ресурсов -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" as="script">
+</head>
+<body>
+<div id="toastMessage" class="toast-message"></div>
+
+<!-- Top bar -->
+<div class="top-bar">
+    <div class="logo-area">
+        <img class="logo-img" src="https://i.postimg.cc/Rh1kRjsQ/LOGOTIP-WF-new.png" alt="logo" width="40" height="40"
+             loading="eager">
+        <div class="logo-text">WHITE FOX STUDIO</div>
+    </div>
+
+    <div class="right-actions">
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by code..."
+                       onkeypress="if(event.key==='Enter') searchProduct()">
+                <button onclick="searchProduct()">Search</button>
+            </div>
+        </div>
+
+        <button class="lang-toggle" id="langToggle">
+            <span id="lang-icon">🇹🇭</span>
+            <span id="lang-text">TH</span>
+        </button>
+    </div>
+
+    <div class="cart-summary" style="display: none !important;">
+        <span>🛒 <span id="total-items">0</span> items</span>
+        <span class="total" id="total-amount">0 THB</span>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="pc-category-nav" id="pcCategoryNav"></div>
+<div class="mobile-category-nav" id="mobileCategoryNav"></div>
+
+<div class="main-layout">
+    <div class="catalog">
+        <!-- Desktop form -->
+        <div class="desktop-form">
+            <div class="form-section">
+                <h3>Parent Information</h3>
+                <div class="form-row">
+                    <div class="form-field">
+                        <input type="text" id="clientName" placeholder="Full Name">
+                    </div>
+                    <div class="form-field">
+                        <input type="tel" id="clientPhone" placeholder="Phone Number">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <input type="text" id="clientLine" placeholder="Line ID">
+                    </div>
+                </div>
+            </div>
+            <div class="form-section">
+                <h3>Student Information</h3>
+                <div class="form-row">
+                    <div class="form-field">
+                        <input type="text" id="studentFirstName" placeholder="Student First Name">
+                    </div>
+                    <div class="form-field">
+                        <input type="text" id="studentLastName" placeholder="Student Family Name">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <div class="date-input-wrapper">
+                            <input type="text" id="birthdate" placeholder="DD/MM/YYYY" maxlength="10">
+                            <span class="date-placeholder">DD/MM/YYYY</span>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <input type="text" id="classGrade" placeholder="Class/Grade">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile form -->
+        <div class="mobile-form">
+            <h3>Parent Information</h3>
+            <div class="mobile-field">
+                <input type="text" id="mobile-clientName" placeholder="Full Name">
+            </div>
+            <div class="mobile-field">
+                <input type="tel" id="mobile-clientPhone" placeholder="Phone Number">
+            </div>
+            <div class="mobile-field">
+                <input type="text" id="mobile-clientLine" placeholder="Line ID">
+            </div>
+            <h3>Student Information</h3>
+            <div class="mobile-field">
+                <input type="text" id="mobile-studentFirstName" placeholder="Student First Name">
+            </div>
+            <div class="mobile-field">
+                <input type="text" id="mobile-studentLastName" placeholder="Student Family Name">
+            </div>
+            <div class="mobile-field">
+                <div class="date-input-wrapper">
+                    <input type="text" id="mobile-birthdate" placeholder="DD/MM/YYYY" maxlength="10">
+                    <span class="date-placeholder">DD/MM/YYYY</span>
+                </div>
+            </div>
+            <div class="mobile-field">
+                <input type="text" id="mobile-classGrade" placeholder="Class/Grade">
+            </div>
+        </div>
+
+        <div id="crmStatus" class="status-message" style="display:none;"></div>
+
+        <!-- Categories will be dynamically inserted here -->
+        <div id="categories-container"></div>
+
+        <!-- OK Button -->
+        <div class="bottom-ok">
+            <button class="send-crm-btn" id="bottomSendBtn" onclick="checkFormAndCheckout()">OK</button>
+        </div>
+    </div>
+
+    <!-- Desktop cart -->
+    <div class="cart-panel">
+        <div class="cart-header">
+            <span>Shopping Cart</span>
+            <span class="cart-count" id="cart-count">0</span>
+        </div>
+        <div id="cart-items-list" class="cart-items">
+            <div class="empty-cart">Cart is empty</div>
+        </div>
+        <div class="cart-total">
+            <span>Total</span>
+            <span id="cart-total-price">0 THB</span>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile cart -->
+<div class="overlay" id="overlay" onclick="closeMobileCart()"></div>
+<button class="mobile-cart-button" id="mobileCartButton" onclick="openMobileCart()">
+    🛒 <span id="mobile-cart-count"></span>• <span id="mobile-cart-total"></span>
+</button>
+<div class="mobile-cart-panel" id="mobileCart">
+    <div class="mobile-cart-header">
+        <span style="font-weight:700; font-size:1.3rem;">Shopping Cart</span>
+        <button class="close-cart" onclick="closeMobileCart()">✕</button>
+    </div>
+    <div id="mobile-cart-items" class="cart-items"></div>
+    <div class="cart-total">
+        <span>Total</span>
+        <span id="mobile-cart-total-price"></span>
+    </div>
+</div>
+
+<!-- Контейнер для остальных стилей (загружаются асинхронно) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" media="print"
+      onload="this.media='all'">
+
+<!-- Supabase Client Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+
+<script>
+    // ===================== КЭШИРОВАНИЕ ДАННЫХ =====================
+    const CACHE_KEYS = {
+        CONFIG: 'supabase_config_cache',
+        PRODUCTS: 'products_cache',
+        CATEGORIES: 'categories_cache',
+        TIMESTAMP: 'last_fetch_timestamp'
+    };
+
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
+    let isInitialized = false;
+    let dataLoadPromise = null;
+
+    // ===================== БЕЗОПАСНОЕ ПОДКЛЮЧЕНИЕ =====================
+    const SUPABASE_URL = 'https://afgzicjirrdzrotgooea.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmZ3ppY2ppcnJkenJvdGdvb2VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjQxODYsImV4cCI6MjA4OTcwMDE4Nn0.yQMVkO6IUPsF2x2kOwzDELrlHNse-tQHYhl-rvRrc6o';
+    // Добавьте после объявления SUPABASE_ANON_KEY
+    const CREATE_ORDER_URL = 'https://afgzicjirrdzrotgooea.supabase.co/functions/v1/create_order';
+    let supabaseClient = null;
+    let categories = [];
+    let products = [];
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let currentLang = 'th';
+
+    // ===================== ФУНКЦИИ КЭШИРОВАНИЯ =====================
+    function getCachedData(key) {
+        try {
+            const cached = localStorage.getItem(key);
+            if (!cached) return null;
+
+            const {data, timestamp} = JSON.parse(cached);
+            const now = Date.now();
+
+            if (now - timestamp > CACHE_DURATION) {
+                localStorage.removeItem(key);
+                return null;
+            }
+
+            return data;
+        } catch (e) {
+            console.warn('Cache read error:', e);
+            return null;
+        }
+    }
+
+    function setCachedData(key, data) {
+        try {
+            const cacheEntry = {
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(key, JSON.stringify(cacheEntry));
+        } catch (e) {
+            console.warn('Cache write error:', e);
+        }
+    }
+
+    // ===================== INITIALIZE SUPABASE =====================
+    async function initSupabase() {
+        if (isInitialized && supabaseClient) {
+            return supabaseClient;
+        }
+
+        try {
+            console.log('Initializing Supabase...');
+
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {persistSession: false},
+                global: {
+                    headers: {
+                        'Cache-Control': 'public, max-age=300',
+                        'X-Client-Info': 'whitefoxstudio@1.0.0'
+                    }
+                }
+            });
+
+            isInitialized = true;
+            console.log('Supabase client initialized');
+
+            await loadData();
+            return supabaseClient;
+
+        } catch (error) {
+            console.error('Failed to initialize Supabase:', error);
+            document.getElementById('categories-container').innerHTML = `
+                    <div class="empty-category">
+                        Failed to connect to database. Please refresh the page.
+                    </div>
+                `;
+        }
+    }
+
+    // ===================== LOAD DATA FROM SUPABASE =====================
+    async function loadData(forceRefresh = false) {
+        if (dataLoadPromise && !forceRefresh) {
+            return dataLoadPromise;
+        }
+
+        dataLoadPromise = (async () => {
+            try {
+                console.log('Loading data from Supabase...');
+
+                // Проверяем кэш
+                if (!forceRefresh) {
+                    const cachedCategories = getCachedData(CACHE_KEYS.CATEGORIES);
+                    const cachedProducts = getCachedData(CACHE_KEYS.PRODUCTS);
+
+                    if (cachedCategories && cachedProducts) {
+                        console.log('Using cached data');
+                        categories = cachedCategories;
+                        products = cachedProducts;
+
+                        products = products.map(product => ({
+                            ...product,
+                            category: categories.find(c => String(c.id) === String(product.category_id)) || null
+                        }));
+
+                        renderCategories();
+                        updateCategoryNav();
+                        updateCartUI();
+                        return;
+                    }
+                }
+
+                // ===================== ЗАГРУЗКА КАТЕГОРИЙ =====================
+                const {data: categoriesData, error: categoriesError} = await supabaseClient
+                    .from('categories')
+                    .select('*')
+                    .order('sort_order', {ascending: true, nullsFirst: false});
+
+                if (categoriesError) throw categoriesError;
+
+                categories = (categoriesData || []).sort((a, b) => {
+                    const orderA = a.sort_order !== null && a.sort_order !== undefined ? a.sort_order : 999;
+                    const orderB = b.sort_order !== null && b.sort_order !== undefined ? b.sort_order : 999;
+                    return orderA - orderB;
+                });
+
+                console.log(`Loaded ${categories.length} categories:`, categories.map(c => ({id: c.id, name: c.name})));
+
+                // ===================== ЗАГРУЗКА ТОВАРОВ ИЗ VIEW product_cards =====================
+                const {data: productCardsData, error: productCardsError} = await supabaseClient
+                    .from('product_cards')
+                    .select('*');
+
+                if (productCardsError) {
+                    console.error('Error loading product_cards:', productCardsError);
+                    throw productCardsError;
+                }
+
+                console.log(`Loaded ${productCardsData?.length || 0} product cards`);
+
+                // ===================== ЗАГРУЗКА ПАКЕТОВ =====================
+                const {data: packagesData, error: packagesError} = await supabaseClient
+                    .from('packages_with_price')
+                    .select('*');
+
+                if (packagesError) {
+                    console.warn('Error loading packages:', packagesError.message);
+                } else {
+                    console.log(`Loaded ${packagesData?.length || 0} packages`);
+                }
+
+                // ===================== НАХОДИМ ID КАТЕГОРИИ PACKAGE =====================
+                let packageCategoryId = null;
+                const packageCategory = categories.find(c => {
+                    const name = (c.name || '').toUpperCase();
+                    return name === 'PACKAGE' || name === 'PACKAGES';
+                });
+
+                if (packageCategory) {
+                    packageCategoryId = packageCategory.id;
+                    console.log('✅ Found package category:', packageCategory.name, 'ID:', packageCategoryId);
+                } else {
+                    console.warn('⚠️ Package category not found');
+                    packageCategoryId = null;
+                }
+
+                // ===================== ОБРАБОТКА ТОВАРОВ (СОХРАНЯЕМ КАРТОЧКИ ЦЕЛИКОМ) =====================
+                // ===================== ОБРАБОТКА ТОВАРОВ (СОХРАНЯЕМ КАРТОЧКИ ЦЕЛИКОМ) =====================
+                let processedProducts = [];
+
+                if (productCardsData && productCardsData.length > 0) {
+                    productCardsData.forEach(card => {
+                        // Парсим variants
+                        let variants = [];
+                        try {
+                            if (card.variants) {
+                                if (typeof card.variants === 'string') {
+                                    variants = JSON.parse(card.variants);
+                                } else {
+                                    variants = card.variants;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn(`Error parsing variants for card:`, e);
+                        }
+
+                        // Определяем category_id
+                        let categoryId = card.category_id;
+                        if (categoryId) {
+                            const exists = categories.find(c => String(c.id) === String(categoryId));
+                            if (!exists) {
+                                categoryId = null;
+                            }
+                        }
+
+                        // Находим минимальную цену среди вариантов
+                        let minPrice = null;
+                        if (variants.length > 0) {
+                            const prices = variants.map(v => v.price || 0);
+                            minPrice = Math.min(...prices);
+                        }
+
+                        // ИСПРАВЛЕНИЕ: берем SKU из первого варианта, если нет card.sku
+                        let cardSku = card.sku;
+                        if (!cardSku && variants.length > 0) {
+                            cardSku = variants[0].sku;
+                        }
+                        if (!cardSku) {
+                            cardSku = card.card_id || `card_${Date.now()}`;
+                        }
+
+                        processedProducts.push({
+                            id: card.card_id || `card_${cardSku}`,
+                            sku: cardSku, // ИСПРАВЛЕНО: теперь SKU берется из первого варианта
+                            name_en: card.name_en,
+                            name_th: card.name_th,
+                            description_en: card.descriptions || card.description_en || '',
+                            description_th: card.descriptions_th || card.description_th || '',
+                            base_price: minPrice || card.price || 0,
+                            image_url: card.cover_image || null,
+                            image: card.cover_image || null,
+                            category_id: categoryId,
+                            isPackage: false,
+                            variants: variants,
+                            sort_product: card.sort_product !== undefined ? card.sort_product : 999
+                        });
+                    });
+                }
+
+                // ===================== ОБРАБОТКА ПАКЕТОВ =====================
+                if (packagesData && packagesData.length > 0) {
+                    console.log(`Processing ${packagesData.length} packages`);
+
+                    packagesData.forEach(pkg => {
+                        if (pkg.visible === false) return;
+
+                        const packageSku = pkg.sku || pkg.slug || `package-${Date.now()}`;
+
+                        let packageItems = [];
+                        let totalPhotos = pkg.total_photos || 0;
+
+                        try {
+                            if (pkg.contents) {
+                                if (typeof pkg.contents === 'string') {
+                                    packageItems = JSON.parse(pkg.contents);
+                                } else {
+                                    packageItems = pkg.contents;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn(`Error parsing contents for package ${packageSku}:`, e);
+                        }
+
+                        const placeholderImage = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='20'%3E${packageSku}%3C/text%3E%3C/svg%3E`;
+
+                        const packageProduct = {
+                            id: `package_${packageSku}`,
+                            sku: packageSku,
+                            name_en: pkg.name_en || packageSku,
+                            name_th: pkg.name_th || pkg.name_en || packageSku,
+                            description_en: pkg.description_en || '',
+                            description_th: pkg.description_th || '',
+                            price: pkg.price || 0,
+                            old_price: pkg.discount_percent ? Math.round(pkg.price / (1 - pkg.discount_percent / 100)) : null,
+                            image_url: pkg.image_url || placeholderImage,
+                            image: pkg.image_url || placeholderImage,
+                            category_id: packageCategoryId,
+                            isPackage: true,
+                            packageItems: packageItems,
+                            totalPhotos: totalPhotos,
+                            qty: packageItems.map(item => `${item.qty || 1} × ${item.name_en || item.sku}`).join('\n'),
+                            bonus_type: pkg.bonus_type,
+                            bonus_value: pkg.bonus_value,
+                            discount_percent: pkg.discount_percent,
+                            visible: pkg.visible,
+                            sort_order: pkg.sort_order || 999,
+                            sort_product: pkg.sort_order || 999
+                        };
+
+                        console.log(`📦 Package added: ${packageSku}`);
+                        processedProducts.push(packageProduct);
+                    });
+                }
+
+                // ===================== СОРТИРОВКА =====================
+                processedProducts.sort((a, b) => {
+                    const sortA = a.sort_product || 999;
+                    const sortB = b.sort_product || 999;
+
+                    if (sortA !== sortB) {
+                        return sortA - sortB;
+                    }
+                    return (a.sku || '').localeCompare(b.sku || '');
+                });
+
+                products = processedProducts;
+
+                // Связываем продукты с категориями
+                products = products.map(product => {
+                    const category = categories.find(c => String(c.id) === String(product.category_id));
+                    return {
+                        ...product,
+                        category: category || null
+                    };
+                });
+
+                // Сохраняем в кэш
+                setCachedData(CACHE_KEYS.PRODUCTS, products);
+                setCachedData(CACHE_KEYS.CATEGORIES, categories);
+
+                console.log(`✅ Total products loaded: ${products.length}`);
+
+                // Статистика по категориям
+                const stats = {};
+                products.forEach(p => {
+                    let catName = 'UNCATEGORIZED';
+                    if (p.isPackage) {
+                        catName = 'PACKAGES';
+                    } else if (p.category) {
+                        catName = p.category.name;
+                    }
+                    stats[catName] = (stats[catName] || 0) + 1;
+                });
+                console.log('📊 Products by category:', stats);
+
+                // Рендерим интерфейс
+                renderCategories();
+                updateCategoryNav();
+                updateCartUI();
+
+                console.log('LoadData completed successfully');
+
+            } catch (error) {
+                console.error('❌ Error loading data:', error);
+
+                const cachedCategories = getCachedData(CACHE_KEYS.CATEGORIES);
+                const cachedProducts = getCachedData(CACHE_KEYS.PRODUCTS);
+
+                if (cachedCategories && cachedProducts) {
+                    console.log('Using cached data after error');
+                    categories = cachedCategories;
+                    products = cachedProducts.map(product => ({
+                        ...product,
+                        category: categories.find(c => String(c.id) === String(product.category_id)) || null
+                    }));
+                    renderCategories();
+                    updateCategoryNav();
+                    updateCartUI();
+                    showToast('Using cached data due to connection error', 'warning');
+                } else {
+                    document.getElementById('categories-container').innerHTML = `
+                    <div class="empty-category">
+                        Error loading products: ${error.message || 'Unknown error'}<br>
+                        <button onclick="location.reload()" style="margin-top:1rem; padding:0.5rem 2rem;">Reload</button>
+                    </div>
+                `;
+                }
+            }
+        })();
+
+        return dataLoadPromise;
+    }
+
+    // ===================== ФУНКЦИИ НАВИГАЦИИ =====================
+    function resetNavigation() {
+        const pcNav = document.getElementById('pcCategoryNav');
+        const mobileNav = document.getElementById('mobileCategoryNav');
+
+        if (pcNav) {
+            while (pcNav.firstChild) {
+                pcNav.removeChild(pcNav.firstChild);
+            }
+            pcNav.style.display = 'none';
+        }
+
+        if (mobileNav) {
+            while (mobileNav.firstChild) {
+                mobileNav.removeChild(mobileNav.firstChild);
+            }
+            mobileNav.style.display = 'none';
+        }
+    }
+
+    function updateCategoryNav() {
+        const pcNav = document.getElementById('pcCategoryNav');
+        const mobileNav = document.getElementById('mobileCategoryNav');
+
+        if (!pcNav || !mobileNav) return;
+
+        resetNavigation();
+
+        if (!categories || categories.length === 0 || !products || products.length === 0) {
+            return;
+        }
+
+        // Находим уникальные категории с продуктами
+        const categoryMap = new Map();
+
+        // Добавляем все категории из БД
+        categories.forEach(category => {
+            categoryMap.set(category.id, category);
+        });
+
+        // Проверяем, есть ли пакеты в products
+        const hasPackages = products.some(p => p.isPackage);
+
+        // Если есть пакеты, добавляем категорию PACKAGES в карту
+        if (hasPackages) {
+            categoryMap.set('packages', {
+                id: 'packages',
+                name: 'PACKAGES',
+                slug: 'packages',
+                sort_order: 0
+            });
+        }
+
+        // Удаляем категории без товаров
+        for (let [catId, category] of categoryMap) {
+            let hasProducts = false;
+
+            if (catId === 'packages') {
+                hasProducts = hasPackages;
+            } else {
+                hasProducts = products.some(p => !p.isPackage && p.category_id === catId);
+            }
+
+            if (!hasProducts) {
+                categoryMap.delete(catId);
+            }
+        }
+
+        const categoriesWithProducts = Array.from(categoryMap.values());
+
+        if (categoriesWithProducts.length === 0) {
+            pcNav.style.display = 'none';
+            mobileNav.style.display = 'none';
+            return;
+        }
+
+        // Сортируем
+        categoriesWithProducts.sort((a, b) => {
+            const orderA = a.sort_order !== undefined ? a.sort_order : 999;
+            const orderB = b.sort_order !== undefined ? b.sort_order : 999;
+            return orderA - orderB;
+        });
+
+        pcNav.style.display = 'flex';
+        mobileNav.style.display = 'flex';
+
+        // Создаем кнопки для ПК
+        categoriesWithProducts.forEach(cat => {
+            const slug = cat.slug || `cat-${cat.id}`;
+
+            const btn = document.createElement('button');
+            btn.className = 'nav-btn';
+            btn.textContent = cat.name || 'Category';
+            btn.onclick = (e) => {
+                e.preventDefault();
+                const element = document.getElementById(`cat-${slug}`);
+                if (element) {
+                    element.scrollIntoView({behavior: 'smooth'});
+                }
+            };
+            pcNav.appendChild(btn);
+        });
+
+        // Создаем ссылки для мобильной версии
+        categoriesWithProducts.forEach(cat => {
+            const slug = cat.slug || `cat-${cat.id}`;
+
+            const link = document.createElement('a');
+            link.href = `#cat-${slug}`;
+            link.className = 'cat-link';
+            link.textContent = cat.name || 'Category';
+            link.onclick = (e) => {
+                e.preventDefault();
+                const element = document.getElementById(`cat-${slug}`);
+                if (element) {
+                    element.scrollIntoView({behavior: 'smooth'});
+                    closeMobileCart();
+                }
+            };
+            mobileNav.appendChild(link);
+        });
+    }
+
+    // ===================== ФУНКЦИИ РЕНДЕРИНГА =====================
+    function renderCategories() {
+        const container = document.getElementById('categories-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        // Проверяем наличие данных
+        if (!products || products.length === 0) {
+            container.innerHTML = '<div class="empty-category">No products available</div>';
+            return;
+        }
+
+        if (!categories || categories.length === 0) {
+            // Если нет категорий, показываем все продукты в одной категории
+            const section = document.createElement('section');
+            section.className = 'category';
+            section.id = 'cat-all';
+
+            section.innerHTML = `
+            <div class="category-header">
+                <span class="category-title">ALL PRODUCTS</span>
+                <span class="product-count">${products.length} items</span>
+            </div>
+            <div class="product-grid" id="grid-all"></div>
+        `;
+
+            container.appendChild(section);
+
+            const grid = document.getElementById('grid-all');
+            renderProducts(grid, products);
+            return;
+        }
+
+        // Группируем продукты по категориям
+        const productsByCategory = {};
+
+        // 1. Инициализируем все категории из БД
+        categories.forEach(category => {
+            if (category && category.id) {
+                productsByCategory[category.id] = {
+                    category: category,
+                    products: []
+                };
+            }
+        });
+
+        // 2. Добавляем специальные категории
+        productsByCategory['packages'] = {
+            category: {
+                id: 'packages',
+                name: 'PACKAGES',
+                slug: 'packages',
+                sort_order: 1
+            },
+            products: []
+        };
+
+        productsByCategory['uncategorized'] = {
+            category: {
+                id: 'uncategorized',
+                name: 'Other',
+                slug: 'other',
+                sort_order: 999
+            },
+            products: []
+        };
+
+        // 3. Распределяем продукты по категориям
+        products.forEach(product => {
+            // Проверяем, является ли продукт пакетом
+            if (product.isPackage) {
+                // Пакеты всегда идут в категорию PACKAGES
+                productsByCategory['packages'].products.push(product);
+                return;
+            }
+
+            // Для обычных продуктов - проверяем category_id
+            const categoryId = product.category_id;
+
+            if (categoryId && productsByCategory[categoryId]) {
+                // Категория найдена в БД
+                productsByCategory[categoryId].products.push(product);
+            } else {
+                // Категория не найдена - в Other
+                productsByCategory['uncategorized'].products.push(product);
+            }
+        });
+
+        // 4. Удаляем пустые категории
+        for (let catId in productsByCategory) {
+            if (productsByCategory[catId].products.length === 0) {
+                delete productsByCategory[catId];
+            }
+        }
+
+        // 5. Сортируем категории по sort_order
+        const sortedCategories = Object.values(productsByCategory).sort((a, b) => {
+            const orderA = a.category.sort_order !== undefined ? a.category.sort_order : 999;
+            const orderB = b.category.sort_order !== undefined ? b.category.sort_order : 999;
+            return orderA - orderB;
+        });
+
+        console.log('Rendering categories:', sortedCategories.map(c => ({
+            name: c.category.name,
+            count: c.products.length,
+            order: c.category.sort_order
+        })));
+
+        // 6. Рендерим каждую категорию
+        sortedCategories.forEach(group => {
+            const category = group.category;
+            const categorySlug = category.slug || `cat-${category.id}`;
+            const categoryName = category.name || 'Category';
+            const productCount = group.products.length;
+
+            const section = document.createElement('section');
+            section.id = `cat-${categorySlug}`;
+            section.className = 'category';
+
+            section.innerHTML = `
+            <div class="category-header">
+                <span class="category-title">${categoryName.toUpperCase()}</span>
+
+            </div>
+            <div class="product-grid" id="grid-${categorySlug}"></div>
+        `;
+
+            container.appendChild(section);
+
+            const grid = document.getElementById(`grid-${categorySlug}`);
+
+            // Сортируем продукты внутри категории по sort_product
+            const sortedProducts = [...group.products].sort((a, b) => {
+                const sortA = a.sort_product !== undefined ? a.sort_product : 999;
+                const sortB = b.sort_product !== undefined ? b.sort_product : 999;
+
+                if (sortA !== sortB) {
+                    return sortA - sortB;
+                }
+                return (a.sku || '').localeCompare(b.sku || '');
+            });
+
+            renderProducts(grid, sortedProducts);
+        });
+
+        // 7. Если после всего нет категорий, показываем сообщение
+        if (sortedCategories.length === 0) {
+            container.innerHTML = '<div class="empty-category">No products available</div>';
+        }
+    }
+
+    function renderProducts(grid, productsList) {
+        if (!grid) return;
+
+        if (!productsList || productsList.length === 0) {
+            grid.innerHTML = '<div class="empty-category">No products in this category</div>';
+            return;
+        }
+
+        const sortedProducts = [...productsList].sort((a, b) => {
+            const sortA = a.sort_product !== undefined ? a.sort_product : 0;
+            const sortB = b.sort_product !== undefined ? b.sort_product : 0;
+            if (sortA !== 0 && sortB !== 0) return sortA - sortB;
+            if (sortA === 0 && sortB !== 0) return 1;
+            if (sortA !== 0 && sortB === 0) return -1;
+            return (a.sku || '').localeCompare(b.sku || '');
+        });
+
+        let html = '';
+
+        sortedProducts.forEach(prod => {
+            const displayName = currentLang === 'th' ? (prod.name_th || prod.name || prod.sku) : (prod.name_en || prod.name || prod.sku);
+
+            let specsHtml = '';
+
+            // ========== ДЛЯ ПАКЕТОВ ==========
+            if (prod.isPackage) {
+                if (prod.totalPhotos > 0) {
+                    specsHtml += `
+                    <div class="info-badge">
+                        ${prod.totalPhotos} photos included
+                    </div>
+                `;
+                }
+
+                if (prod.packageItems && prod.packageItems.length > 0) {
+                    specsHtml += `<div class="package-items">`;
+                    prod.packageItems.forEach(item => {
+                        const itemName = currentLang === 'th' ? (item.name_th || item.sku) : (item.name_en || item.sku);
+                        specsHtml += `<div class="package-item">${item.qty} × ${itemName}</div>`;
+                    });
+                    specsHtml += `</div>`;
+                }
+            }
+
+            // ========== ДЛЯ ОБЫЧНЫХ ТОВАРОВ ==========
+            if (!prod.isPackage && prod.variants && prod.variants.length > 0) {
+                // Собираем уникальные значения
+                const uniqueSizes = [...new Set(prod.variants.map(v => v.size_label).filter(Boolean))];
+                const uniquePoses = [...new Set(prod.variants.map(v => v.pose).filter(Boolean))];
+                const uniqueColors = [...new Set(prod.variants.map(v => v.color).filter(Boolean))];
+
+                // Добавляем характеристики
+                if (uniqueSizes.length > 0 || uniquePoses.length > 0 || uniqueColors.length > 0) {
+                    specsHtml += `<div class="product-specs-info">`;
+
+                    if (uniqueSizes.length > 0) {
+                        specsHtml += `
+                        <div class="spec-info-item">
+                            <span class="spec-label">Size:</span>
+                            <span class="spec-value">${uniqueSizes.join(', ')}</span>
+                        </div>
+                    `;
+                    }
+
+                    if (uniquePoses.length > 0) {
+                        specsHtml += `
+                        <div class="spec-info-item">
+                            <span class="spec-label">Pose:</span>
+                            <span class="spec-value">${uniquePoses.join(', ')}</span>
+                        </div>
+                    `;
+                    }
+
+                    if (uniqueColors.length > 0) {
+                        specsHtml += `
+                        <div class="spec-info-item">
+                            <span class="spec-label">Color:</span>
+                            <span class="spec-value">${uniqueColors.join(', ')}</span>
+                        </div>
+                    `;
+                    }
+
+                    specsHtml += `</div>`;
+                }
+            }
+
+            // ========== ВАРИАНТЫ ТОВАРА ==========
+            let variantsSelectorHtml = '';
+            let currentPrice = prod.base_price || prod.price || 0;
+            let currentSku = prod.sku;
+            let currentDescription = '';
+            let currentImage = prod.image_url || '';
+
+            if (!prod.isPackage && prod.variants && prod.variants.length > 0) {
+                // Находим данные для первого варианта
+                const firstVariant = prod.variants[0];
+                if (firstVariant) {
+                    currentPrice = firstVariant.price;
+                    if (firstVariant.sku) currentSku = firstVariant.sku;
+                    currentDescription = currentLang === 'th' ? (firstVariant.descriptions_th || '') : (firstVariant.descriptions || '');
+                    currentImage = firstVariant.image_url || prod.image_url || '';
+                }
+
+                // Показываем селект ТОЛЬКО если больше 1 варианта
+                if (prod.variants.length > 1) {
+                    variantsSelectorHtml = `
+                    <div class="variant-selector-wrapper">
+                        <select class="variant-selector" id="variant-select-${prod.id}"
+                                onchange="updateCardData('${prod.id}')">
+                            ${prod.variants.map((v, idx) => {
+                        let variantText = '';
+                        let variantParts = [];
+                        if (v.size_label) variantParts.push(v.size_label);
+                        if (v.pose) variantParts.push(v.pose);
+                        if (v.color) variantParts.push(v.color);
+                        variantText = variantParts.join(' / ');
+                        if (!variantText) variantText = v.sku;
+
+                        const variantImage = v.image_url || prod.image_url || '';
+
+                        return `<option value="${v.sku}"
+                                        data-price="${v.price}"
+                                        data-description="${currentLang === 'th' ? (v.descriptions_th || '') : (v.descriptions || '')}"
+                                        data-image="${variantImage}"
+                                        ${idx === 0 ? 'selected' : ''}>
+                                    ${variantText} — ฿${v.price}
+                                </option>`;
+                    }).join('')}
+                        </select>
+                    </div>
+                `;
+                }
+                // Если 1 вариант - селект не показываем, данные уже установлены из firstVariant
+            }
+
+            // Description
+            let descriptionText = '';
+            if (prod.isPackage) {
+                descriptionText = currentLang === 'th' ? prod.description_th || '' : prod.description_en || '';
+            } else {
+                descriptionText = currentDescription || (currentLang === 'th' ? prod.description_th || '' : prod.description_en || '');
+            }
+
+            let descHtml = '';
+            if (descriptionText) {
+                descHtml = `<div class="package-description" id="desc-${prod.id}">${descriptionText.replace(/\n/g, '<br>')}</div>`;
+            }
+
+            let priceHtml = `<span class="price" id="price-${prod.id}">฿${currentPrice}</span>`;
+            let btnHtml = `<button class="add-to-cart-btn" onclick="addToCart('${prod.id}')">+</button>`;
+
+            html += `<div class="product-card ${prod.isPackage ? 'package-card' : ''}" id="card-${prod.id}">
+            <div class="product-image" onclick="window.open('${currentImage || prod.image_url}', '_blank')">
+                <img id="img-${prod.id}"
+                     src="${currentImage || prod.image_url}"
+                     alt="${prod.sku}"
+                     loading="lazy">
+            </div>
+            <div class="product-header">
+                <span class="product-sku" id="sku-${prod.id}">${currentSku}</span>
+                <span class="product-title">${displayName}</span>
+            </div>
+            ${specsHtml}
+            ${descHtml}
+            ${variantsSelectorHtml}
+            <div class="price-area">
+                <div class="price-wrapper">${priceHtml}</div>
+                ${btnHtml}
+            </div>
+        </div>`;
+        });
+
+        grid.innerHTML = html;
+    }
+
+    // Обновленная функция обновления данных при выборе варианта
+    window.updateCardData = function (cardId) {
+        const selectEl = document.getElementById(`variant-select-${cardId}`);
+        if (!selectEl) return;
+
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        const price = selectedOption.getAttribute('data-price');
+        const description = selectedOption.getAttribute('data-description');
+        const imageUrl = selectedOption.getAttribute('data-image');
+        const selectedSku = selectEl.value; // Получаем SKU из value option
+
+        // Обновляем цену
+        const priceEl = document.getElementById(`price-${cardId}`);
+        if (priceEl && price) {
+            priceEl.textContent = `฿${price}`;
+        }
+
+        // Обновляем SKU
+        const skuEl = document.getElementById(`sku-${cardId}`);
+        if (skuEl && selectedSku) {
+            skuEl.textContent = selectedSku;
+        }
+
+        // Обновляем описание
+        const descEl = document.getElementById(`desc-${cardId}`);
+        if (descEl && description) {
+            descEl.innerHTML = description.replace(/\n/g, '<br>');
+        }
+
+        // Обновляем изображение
+        const imgEl = document.getElementById(`img-${cardId}`);
+        if (imgEl && imageUrl) {
+            imgEl.src = imageUrl;
+            const parentDiv = imgEl.closest('.product-image');
+            if (parentDiv) {
+                parentDiv.setAttribute('onclick', `window.open('${imageUrl}', '_blank')`);
+            }
+        }
+    };
+
+    // Функция обновления цены при выборе варианта
+    window.updateCardPrice = function (cardId) {
+        const selectEl = document.getElementById(`variant-select-${cardId}`);
+        if (!selectEl) return;
+
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        const price = selectedOption.getAttribute('data-price');
+        const selectedSku = selectEl.value;
+
+        // Обновляем цену
+        const priceEl = document.getElementById(`price-${cardId}`);
+        if (priceEl && price) {
+            priceEl.textContent = `฿${price}`;
+        }
+
+        // Обновляем SKU на карточке
+        const skuEl = document.getElementById(`sku-${cardId}`);
+        if (skuEl && selectedSku) {
+            skuEl.textContent = selectedSku;
+        }
+    };
+
+    // ===================== ФУНКЦИИ ПОИСКА =====================
+    window.searchProduct = function () {
+        const searchInput = document.getElementById('searchInput');
+        if (!searchInput) return;
+
+        const searchTerm = searchInput.value.toLowerCase().trim();
+
+        document.activeElement.blur();
+
+        if (!searchTerm) {
+            showToast('Please enter a search term', 'error');
+            return;
+        }
+
+        const productCards = document.querySelectorAll('.product-card');
+
+        if (productCards.length === 0) {
+            showToast('No products on page', 'error');
+            return;
+        }
+
+        let found = false;
+        let firstMatch = null;
+        let matchCount = 0;
+        let matchedCardId = null;
+        let matchedVariantSku = null;
+
+        // Сначала очищаем подсветку
+        productCards.forEach(card => {
+            card.style.boxShadow = '';
+            card.style.border = '';
+        });
+
+        // Ищем совпадения по SKU и названию
+        productCards.forEach((card) => {
+            const skuElement = card.querySelector('.product-sku');
+            const titleElement = card.querySelector('.product-title');
+            const selectElement = card.querySelector('.variant-selector');
+
+            const cardSku = skuElement ? skuElement.textContent.toLowerCase() : '';
+            const title = titleElement ? titleElement.textContent.toLowerCase() : '';
+
+            // Проверяем SKU карточки
+            if (cardSku.includes(searchTerm) || title.includes(searchTerm)) {
+                if (!firstMatch) {
+                    firstMatch = card;
+                    matchedCardId = card.id.replace('card-', '');
+                }
+                matchCount++;
+                found = true;
+
+                // Подсвечиваем
+                card.style.transition = 'box-shadow 0.3s';
+                card.style.boxShadow = '0 0 0 3px var(--accent-primary)';
+                card.style.border = '2px solid var(--accent-primary)';
+            }
+
+            // Если есть селект, проверяем варианты
+            if (selectElement) {
+                const options = selectElement.options;
+                for (let i = 0; i < options.length; i++) {
+                    const optionText = options[i].text.toLowerCase();
+                    const optionValue = options[i].value.toLowerCase();
+
+                    if (optionText.includes(searchTerm) || optionValue.includes(searchTerm)) {
+                        if (!firstMatch) {
+                            firstMatch = card;
+                            matchedCardId = card.id.replace('card-', '');
+                            matchedVariantSku = options[i].value;
+                        }
+                        matchCount++;
+                        found = true;
+
+                        // Подсвечиваем карточку
+                        card.style.transition = 'box-shadow 0.3s';
+                        card.style.boxShadow = '0 0 0 3px var(--accent-primary)';
+                        card.style.border = '2px solid var(--accent-primary)';
+
+                        // Если нашли вариант, выбираем его
+                        if (matchedVariantSku && matchedCardId === card.id.replace('card-', '')) {
+                            selectElement.value = matchedVariantSku;
+                            // Вызываем обновление карточки
+                            if (typeof updateCardData === 'function') {
+                                updateCardData(matchedCardId);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+
+        if (found && firstMatch) {
+            const isMobile = window.innerWidth <= 900;
+
+            const rect = firstMatch.getBoundingClientRect();
+            const nav = isMobile ? document.getElementById('mobileCategoryNav') : document.getElementById('pcCategoryNav');
+            const navRect = nav.getBoundingClientRect();
+            const topOffset = navRect.top + navRect.height + 20;
+            const targetPosition = rect.top + window.scrollY - topOffset;
+
+            // Прокручиваем к найденной карточке
+            window.scrollTo({
+                top: Math.max(0, targetPosition),
+                behavior: 'smooth'
+            });
+
+            showToast(`Found ${matchCount} product(s)`, 'success');
+
+            // Убираем подсветку через 3 секунды
+            setTimeout(() => {
+                productCards.forEach(card => {
+                    card.style.boxShadow = '';
+                    card.style.border = '';
+                });
+            }, 3000);
+
+        } else if (!found) {
+            showToast('Product not found', 'error');
+        }
+    };
+
+    // ===================== ФУНКЦИИ КОРЗИНЫ =====================
+    function getCartQuantity(productId) {
+        const item = cart.find(i => i.id === productId);
+        return item ? item.quantity : 0;
+    }
+
+    // ===================== ФУНКЦИЯ ИЗМЕНЕНИЯ КОЛИЧЕСТВА В КОРЗИНЕ =====================
+    window.updateQuantity = function (itemId, delta) {
+        const itemIndex = cart.findIndex(item => item.id === itemId);
+
+        if (itemIndex === -1) {
+            console.warn('Item not found in cart:', itemId);
+            return;
+        }
+
+        const item = cart[itemIndex];
+        const newQuantity = item.quantity + delta;
+
+        if (newQuantity <= 0) {
+            cart.splice(itemIndex, 1);
+            showToast(`Removed: ${item.name}`, 'info');
+        } else {
+            item.quantity = newQuantity;
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartUI();
+
+        if (cart.length === 0) {
+            closeMobileCart();
+        }
+    };
+
+
+    window.addToCart = function (cardId) {
+        const prod = products.find(p => p.id === cardId);
+        if (!prod) return;
+
+        let itemToAdd = null;
+
+        if (prod.isPackage) {
+            // Проверяем, является ли пакет "Package L"
+            const isPackageL = (prod.sku && (prod.sku.toLowerCase() === 'package-l' || prod.sku.toLowerCase() === 'l')) ||
+                (prod.name_en && prod.name_en.toLowerCase().includes('package l')) ||
+                (prod.name_th && prod.name_th.toLowerCase().includes('package l'));
+
+            itemToAdd = {
+                id: prod.id,
+                sku: prod.sku,
+                name: currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name),
+                price: prod.price,
+                quantity: 1,
+                isPackage: true,
+                isPackageL: isPackageL,  // ДОБАВЛЕНО
+                bonus_type: prod.bonus_type,
+                bonus_value: prod.bonus_value,
+                discount_percent: prod.discount_percent
+            };
+        } else {
+            // ... остальной код для обычных товаров (без изменений) ...
+            if (prod.variants && prod.variants.length > 0) {
+                const selectEl = document.getElementById(`variant-select-${cardId}`);
+                if (selectEl) {
+                    const selectedSku = selectEl.value;
+                    const selectedVariant = prod.variants.find(v => v.sku === selectedSku);
+                    if (selectedVariant) {
+                        let variantName = '';
+                        if (selectedVariant.size_label) variantName += `${selectedVariant.size_label} `;
+                        if (selectedVariant.pose) variantName += `${selectedVariant.pose} `;
+                        if (selectedVariant.color) variantName += `${selectedVariant.color}`;
+                        if (!variantName) variantName = selectedVariant.sku;
+
+                        itemToAdd = {
+                            id: selectedVariant.sku,
+                            sku: selectedVariant.sku,
+                            name: `${currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name)} (${variantName.trim()})`,
+                            price: selectedVariant.price,
+                            quantity: 1,
+                            isPackage: false,
+                            isPackageL: false
+                        };
+                    }
+                } else {
+                    const firstVariant = prod.variants[0];
+                    if (firstVariant) {
+                        let variantName = '';
+                        if (firstVariant.size_label) variantName += `${firstVariant.size_label} `;
+                        if (firstVariant.pose) variantName += `${firstVariant.pose} `;
+                        if (firstVariant.color) variantName += `${firstVariant.color}`;
+                        if (!variantName) variantName = firstVariant.sku;
+
+                        itemToAdd = {
+                            id: firstVariant.sku,
+                            sku: firstVariant.sku,
+                            name: `${currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name)} (${variantName.trim()})`,
+                            price: firstVariant.price,
+                            quantity: 1,
+                            isPackage: false,
+                            isPackageL: false
+                        };
+                    }
+                }
+            } else {
+                itemToAdd = {
+                    id: prod.id,
+                    sku: prod.sku,
+                    name: currentLang === 'th' ? (prod.name_th || prod.name) : (prod.name_en || prod.name),
+                    price: prod.base_price || prod.price || 0,
+                    quantity: 1,
+                    isPackage: false,
+                    isPackageL: false
+                };
+            }
+        }
+
+        if (!itemToAdd) {
+            showToast('Error adding to cart', 'error');
+            return;
+        }
+
+        const existing = cart.find(item => item.id === itemToAdd.id);
+        if (existing) {
+            existing.quantity++;
+            if (itemToAdd.isPackage) {
+                existing.bonus_type = itemToAdd.bonus_type;
+                existing.bonus_value = itemToAdd.bonus_value;
+                existing.discount_percent = itemToAdd.discount_percent;
+                existing.isPackageL = itemToAdd.isPackageL;
+            }
+        } else {
+            cart.push(itemToAdd);
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartUI();
+        showToast(`Added to cart: ${itemToAdd.name}`);
+    };
+
+    function updateCartUI() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+        // Расчет скидки
+        let productsTotal = 0;
+        let packagesTotal = 0;
+        let hasPackageL = false;
+
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            if (item.isPackage) {
+                packagesTotal += itemTotal;
+                if (item.isPackageL === true) {
+                    hasPackageL = true;
+                } else {
+                    const skuLower = (item.sku || '').toLowerCase();
+                    const nameLower = (item.name || '').toLowerCase();
+                    if (skuLower === 'package-l' || skuLower === 'l' ||
+                        nameLower.includes('package l')) {
+                        hasPackageL = true;
+                        item.isPackageL = true;
+                    }
+                }
+            } else {
+                productsTotal += itemTotal;
+            }
+        });
+
+        const subtotal = productsTotal + packagesTotal;
+        let finalPrice = subtotal;
+        let discountAmount = 0;
+        let discountPercent = 0;
+
+        if (hasPackageL && productsTotal > 0) {
+            discountPercent = 10;
+            discountAmount = Math.round((productsTotal * discountPercent) / 100);
+            finalPrice = productsTotal + packagesTotal - discountAmount;
+        }
+
+        // Обновляем счетчики
+        const totalItemsEl = document.getElementById('total-items');
+        const cartCountEl = document.getElementById('cart-count');
+        const mobileCartCountEl = document.getElementById('mobile-cart-count');
+        const mobileCartTotalEl = document.getElementById('mobile-cart-total');
+        const cartTotalPriceEl = document.getElementById('cart-total-price');
+        const mobileCartTotalPriceEl = document.getElementById('mobile-cart-total-price');
+        const totalAmountEl = document.getElementById('total-amount');
+
+        if (totalItemsEl) totalItemsEl.textContent = totalItems;
+        if (cartCountEl) cartCountEl.textContent = totalItems;
+        if (mobileCartCountEl) mobileCartCountEl.textContent = totalItems;
+
+        const hasDiscount = discountAmount > 0;
+        const formattedPrice = formatPriceWithDiscount(finalPrice, subtotal, discountAmount, discountPercent, hasDiscount);
+
+        if (cartTotalPriceEl) cartTotalPriceEl.innerHTML = formattedPrice;
+        if (mobileCartTotalPriceEl) mobileCartTotalPriceEl.innerHTML = formattedPrice;
+        if (totalAmountEl) totalAmountEl.innerHTML = formattedPrice;
+        if (mobileCartTotalEl) mobileCartTotalEl.textContent = finalPrice.toLocaleString() + ' THB';
+
+        // Стили для фиксации нижней части корзины
+        const fixedBottomStyles = `
+        <style id="cart-fixed-styles">
+            .cart-panel {
+                display: flex;
+                flex-direction: column;
+                height: calc(100vh - 180px);
+                max-height: calc(100vh - 180px);
+                overflow: hidden;
+            }
+            .cart-items-scroll {
+                flex: 1;
+                overflow-y: auto;
+                margin-bottom: 0;
+                padding-right: 5px;
+            }
+            .cart-bottom-fixed {
+                flex-shrink: 0;
+                background: white;
+                border-top: 2px solid var(--accent-primary);
+                margin-top: 12px;
+                padding-top: 12px;
+            }
+            .mobile-cart-panel {
+                display: flex;
+                flex-direction: column;
+                height: 85vh;
+                max-height: 85vh;
+                overflow: hidden;
+            }
+            .mobile-cart-items-scroll {
+                flex: 1;
+                overflow-y: auto;
+                margin-bottom: 0;
+                padding-right: 5px;
+            }
+            .mobile-cart-bottom-fixed {
+                flex-shrink: 0;
+                background: white;
+                border-top: 2px solid var(--accent-primary);
+                margin-top: 12px;
+                padding-top: 12px;
+            }
+        </style>
+    `;
+
+        // Добавляем стили если их нет
+        if (!document.getElementById('cart-fixed-styles')) {
+            document.head.insertAdjacentHTML('beforeend', fixedBottomStyles);
+        }
+
+        // Отрисовываем список товаров
+        const cartHtml = cart.length === 0 ?
+            '<div style="text-align: center; padding: 40px 20px; color: #999; font-size: 1rem;">🛒 Cart is empty</div>' :
+            cart.map(item => {
+                const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
+
+                const isPackageLItem = item.isPackage && (item.isPackageL === true ||
+                    (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
+                    (item.name && item.name.toLowerCase().includes('package l')));
+
+                const packageLBadge = isPackageLItem ?
+                    '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
+
+                return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #e9eef2; gap: 12px;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
+                        <span style="background: #d9f0f2; color: #007883; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${escapeHtml(item.sku)}</span>
+                        <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(item.name)}</span>
+                        ${packageLBadge}
+                    </div>
+                    <div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB (${item.price.toLocaleString()} × ${item.quantity})</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 6px 14px; border-radius: 40px;">
+                    <button onclick="updateQuantity('${safeItemId}', -1)"
+                            style="background: white; border: 1px solid #007883; color: #007883; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;">−</button>
+                    <span style="min-width: 28px; text-align: center; font-weight: 700; font-size: 1rem;">${item.quantity}</span>
+                    <button onclick="updateQuantity('${safeItemId}', 1)"
+                            style="background: white; border: 1px solid #007883; color: #007883; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;">+</button>
+                </div>
+            </div>`;
+            }).join('');
+
+        // Кнопка OK (всегда видна внизу)
+        const checkoutButtonHtml = `
+        <div style="padding: 12px 0 8px 0;">
+            <button onclick="checkFormAndCheckout()"
+                    style="width: 100%; background: var(--accent-primary); color: white; border: none; padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,120,131,0.3);">
+                 OK - Complete Order (${finalPrice.toLocaleString()} THB)
+            </button>
+        </div>
+    `;
+
+        // Обновляем десктопную корзину с фиксированной нижней частью
+        const cartPanel = document.querySelector('.cart-panel');
+        if (cartPanel) {
+            // Сохраняем оригинальную структуру
+            const cartHeader = cartPanel.querySelector('.cart-header');
+            const cartTotal = cartPanel.querySelector('.cart-total');
+
+            if (cartHeader && cartTotal) {
+                // Создаем новую структуру
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'cart-items-scroll';
+                scrollContainer.id = 'cart-items-list';
+                scrollContainer.innerHTML = cartHtml;
+
+                const bottomContainer = document.createElement('div');
+                bottomContainer.className = 'cart-bottom-fixed';
+
+                // Клонируем блок с общей суммой
+                const newCartTotal = cartTotal.cloneNode(true);
+                const totalSpan = newCartTotal.querySelector('#cart-total-price');
+                if (totalSpan) totalSpan.innerHTML = formattedPrice;
+
+                bottomContainer.appendChild(newCartTotal);
+                bottomContainer.insertAdjacentHTML('beforeend', checkoutButtonHtml);
+
+                // Очищаем и перестраиваем
+                cartPanel.innerHTML = '';
+                cartPanel.appendChild(cartHeader);
+                cartPanel.appendChild(scrollContainer);
+                cartPanel.appendChild(bottomContainer);
+            } else {
+                // fallback
+                const cartItemsList = document.getElementById('cart-items-list');
+                if (cartItemsList) cartItemsList.innerHTML = cartHtml;
+                const existingBtn = cartPanel.querySelector('.cart-ok-btn');
+                if (existingBtn) existingBtn.remove();
+                if (cart.length > 0) {
+                    const btnDiv = document.createElement('div');
+                    btnDiv.className = 'cart-ok-btn';
+                    btnDiv.style.marginTop = '16px';
+                    btnDiv.style.paddingTop = '16px';
+                    btnDiv.style.borderTop = '2px solid var(--accent-primary)';
+                    btnDiv.innerHTML = checkoutButtonHtml;
+                    cartPanel.appendChild(btnDiv);
+                }
+            }
+        }
+
+        // Обновляем мобильную корзину с фиксированной нижней частью
+        const mobileCartPanel = document.getElementById('mobileCart');
+        if (mobileCartPanel) {
+            const mobileCartHeader = mobileCartPanel.querySelector('.mobile-cart-header');
+            const mobileCartTotal = mobileCartPanel.querySelector('.cart-total');
+
+            if (mobileCartHeader && mobileCartTotal) {
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'mobile-cart-items-scroll';
+                scrollContainer.id = 'mobile-cart-items';
+                scrollContainer.innerHTML = cartHtml;
+
+                const bottomContainer = document.createElement('div');
+                bottomContainer.className = 'mobile-cart-bottom-fixed';
+
+                const newMobileTotal = mobileCartTotal.cloneNode(true);
+                const mobileTotalSpan = newMobileTotal.querySelector('#mobile-cart-total-price');
+                if (mobileTotalSpan) mobileTotalSpan.innerHTML = formattedPrice;
+
+                bottomContainer.appendChild(newMobileTotal);
+                bottomContainer.insertAdjacentHTML('beforeend', checkoutButtonHtml);
+
+                mobileCartPanel.innerHTML = '';
+                mobileCartPanel.appendChild(mobileCartHeader);
+                mobileCartPanel.appendChild(scrollContainer);
+                mobileCartPanel.appendChild(bottomContainer);
+            } else {
+                const mobileCartItems = document.getElementById('mobile-cart-items');
+                if (mobileCartItems) mobileCartItems.innerHTML = cartHtml;
+                const existingBtn = document.getElementById('mobile-cart-ok-btn');
+                if (existingBtn) existingBtn.remove();
+                if (cart.length > 0) {
+                    const btnDiv = document.createElement('div');
+                    btnDiv.id = 'mobile-cart-ok-btn';
+                    btnDiv.style.marginTop = '16px';
+                    btnDiv.style.paddingTop = '16px';
+                    btnDiv.style.borderTop = '2px solid var(--accent-primary)';
+                    btnDiv.innerHTML = checkoutButtonHtml;
+                    mobileCartPanel.appendChild(btnDiv);
+                }
+            }
+        }
+
+        // Обновляем информацию о скидке
+        const existingDiscountInfo = document.querySelectorAll('.cart-discount-info-inline');
+        existingDiscountInfo.forEach(el => el.remove());
+
+        if (hasPackageL && productsTotal > 0) {
+            const discountBanner = `
+            <div class="cart-discount-info-inline" style="background: #fff3e0; padding: 8px 12px; margin: 8px 0; border-radius: 12px; border-left: 3px solid #ff9800;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1rem;">🎁</span>
+                    <span style="font-weight: 600; color: #e67e22; font-size: 0.85rem;">Package L: 10% OFF on regular items (saved ${discountAmount} THB)</span>
+                </div>
+            </div>
+        `;
+
+            const cartHeader = document.querySelector('.cart-header');
+            if (cartHeader && !document.querySelector('.cart-header + .cart-discount-info-inline')) {
+                cartHeader.insertAdjacentHTML('afterend', discountBanner);
+            }
+
+            const mobileCartHeader = document.querySelector('.mobile-cart-header');
+            if (mobileCartHeader && !document.querySelector('.mobile-cart-header + .cart-discount-info-inline')) {
+                mobileCartHeader.insertAdjacentHTML('afterend', discountBanner);
+            }
+        }
+    }
+
+    // ===================== ФУНКЦИЯ ПРОВЕРКИ ВСЕХ ПОЛЕЙ АНКЕТЫ =====================
+    // ===================== ФУНКЦИЯ ПРОВЕРКИ ВСЕХ ПОЛЕЙ АНКЕТЫ (С ПЕРЕКИДЫВАНИЕМ НАВЕРХ) =====================
+    window.checkFormAndCheckout = function () {
+        const isMobile = window.innerWidth <= 900;
+
+        console.log('=== CHECK FORM START ===');
+        console.log('Is mobile:', isMobile);
+
+        // Все обязательные поля анкеты
+        const fields = {
+            clientName: {
+                element: document.getElementById(isMobile ? 'mobile-clientName' : 'clientName'),
+                label: 'Full Name',
+                value: null,
+                validation: 'english' // только английские буквы
+            },
+            clientPhone: {
+                element: document.getElementById(isMobile ? 'mobile-clientPhone' : 'clientPhone'),
+                label: 'Phone Number',
+                value: null,
+                validation: 'phone' // телефон
+            },
+            clientLine: {
+                element: document.getElementById(isMobile ? 'mobile-clientLine' : 'clientLine'),
+                label: 'Line ID',
+                value: null,
+                validation: 'english_numbers' // английские буквы и цифры
+            },
+            studentFirstName: {
+                element: document.getElementById(isMobile ? 'mobile-studentFirstName' : 'studentFirstName'),
+                label: 'Student First Name',
+                value: null,
+                validation: 'english'
+            },
+            studentLastName: {
+                element: document.getElementById(isMobile ? 'mobile-studentLastName' : 'studentLastName'),
+                label: 'Student Family Name',
+                value: null,
+                validation: 'english'
+            },
+            birthdate: {
+                element: document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate'),
+                label: 'Birthdate (DD/MM/YYYY)',
+                value: null,
+                validation: 'date'
+            },
+            classGrade: {
+                element: document.getElementById(isMobile ? 'mobile-classGrade' : 'classGrade'),
+                label: 'Class/Grade',
+                value: null,
+                validation: 'class'
+            }
+        };
+
+        // Сначала получаем все значения
+        for (const [key, field] of Object.entries(fields)) {
+            if (field.element) {
+                field.value = field.element.value?.trim() || '';
+                console.log(`${key}: "${field.value}"`);
+            } else {
+                console.warn(`${key} element not found`);
+            }
+        }
+
+        // Проверяем заполненность и валидность
+        let hasErrors = false;
+        const errorMessages = [];
+        const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+        for (const [key, field] of Object.entries(fields)) {
+            if (!field.element) continue;
+
+            const value = field.value;
+
+            // Проверяем что поле не пустое
+            if (value === '') {
+                hasErrors = true;
+                errorMessages.push(`${field.label} is required`);
+                field.element.style.border = '2px solid #c44536';
+                field.element.style.backgroundColor = '#fff8f8';
+
+                const removeHighlight = () => {
+                    if (field.element) {
+                        field.element.style.border = '';
+                        field.element.style.backgroundColor = '';
+                        field.element.removeEventListener('input', removeHighlight);
+                        field.element.removeEventListener('change', removeHighlight);
+                    }
+                };
+                field.element.addEventListener('input', removeHighlight, {once: true});
+                field.element.addEventListener('change', removeHighlight, {once: true});
+                continue;
+            }
+
+            // Валидация по типу поля
+            switch (field.validation) {
+                case 'english':
+                    // Только английские буквы, пробелы, дефисы, апострофы
+                    if (!/^[A-Za-z\s\-']+$/.test(value)) {
+                        hasErrors = true;
+                        errorMessages.push(`${field.label}: Use English letters only`);
+                        field.element.style.border = '2px solid #c44536';
+                        field.element.style.backgroundColor = '#fff8f8';
+
+                        const removeHighlight = () => {
+                            if (field.element) {
+                                field.element.style.border = '';
+                                field.element.style.backgroundColor = '';
+                                field.element.removeEventListener('input', removeHighlight);
+                                field.element.removeEventListener('change', removeHighlight);
+                            }
+                        };
+                        field.element.addEventListener('input', removeHighlight, {once: true});
+                        field.element.addEventListener('change', removeHighlight, {once: true});
+                    } else {
+                        field.element.style.border = '2px solid var(--border-color)';
+                        field.element.style.backgroundColor = 'white';
+                    }
+                    break;
+
+                case 'english_numbers':
+                    // Английские буквы, цифры, пробелы, дефисы, подчеркивания
+                    if (!/^[A-Za-z0-9\s\-_]+$/.test(value)) {
+                        hasErrors = true;
+                        errorMessages.push(`${field.label}: Use English letters and numbers only`);
+                        field.element.style.border = '2px solid #c44536';
+                        field.element.style.backgroundColor = '#fff8f8';
+
+                        const removeHighlight = () => {
+                            if (field.element) {
+                                field.element.style.border = '';
+                                field.element.style.backgroundColor = '';
+                                field.element.removeEventListener('input', removeHighlight);
+                                field.element.removeEventListener('change', removeHighlight);
+                            }
+                        };
+                        field.element.addEventListener('input', removeHighlight, {once: true});
+                        field.element.addEventListener('change', removeHighlight, {once: true});
+                    } else {
+                        field.element.style.border = '2px solid var(--border-color)';
+                        field.element.style.backgroundColor = 'white';
+                    }
+                    break;
+
+                case 'phone':
+                    // Телефон: цифры, пробелы, дефисы, плюс, скобки
+                    if (!/^[0-9\s\-+()]+$/.test(value)) {
+                        hasErrors = true;
+                        errorMessages.push(`${field.label}: Use only numbers and + - ( )`);
+                        field.element.style.border = '2px solid #c44536';
+                        field.element.style.backgroundColor = '#fff8f8';
+
+                        const removeHighlight = () => {
+                            if (field.element) {
+                                field.element.style.border = '';
+                                field.element.style.backgroundColor = '';
+                                field.element.removeEventListener('input', removeHighlight);
+                                field.element.removeEventListener('change', removeHighlight);
+                            }
+                        };
+                        field.element.addEventListener('input', removeHighlight, {once: true});
+                        field.element.addEventListener('change', removeHighlight, {once: true});
+                    } else {
+                        field.element.style.border = '2px solid var(--border-color)';
+                        field.element.style.backgroundColor = 'white';
+                    }
+                    break;
+
+                case 'date':
+                    // Проверяем формат даты DD/MM/YYYY
+                    if (!datePattern.test(value)) {
+                        hasErrors = true;
+                        errorMessages.push(`${field.label}: Use DD/MM/YYYY format`);
+                        field.element.style.border = '2px solid #c44536';
+                        field.element.style.backgroundColor = '#fff8f8';
+
+                        const removeHighlight = () => {
+                            if (field.element) {
+                                field.element.style.border = '';
+                                field.element.style.backgroundColor = '';
+                                field.element.removeEventListener('input', removeHighlight);
+                                field.element.removeEventListener('change', removeHighlight);
+                            }
+                        };
+                        field.element.addEventListener('input', removeHighlight, {once: true});
+                        field.element.addEventListener('change', removeHighlight, {once: true});
+                    } else {
+                        const match = datePattern.exec(value);
+                        const day = parseInt(match[1], 10);
+                        const month = parseInt(match[2], 10);
+                        const year = parseInt(match[3], 10);
+
+                        const date = new Date(year, month - 1, day);
+                        const isValidDate = date.getFullYear() === year &&
+                            date.getMonth() === month - 1 &&
+                            date.getDate() === day;
+
+                        if (!isValidDate || year < 1900 || year > new Date().getFullYear()) {
+                            hasErrors = true;
+                            errorMessages.push(`${field.label}: Invalid date`);
+                            field.element.style.border = '2px solid #c44536';
+                            field.element.style.backgroundColor = '#fff8f8';
+
+                            const removeHighlight = () => {
+                                if (field.element) {
+                                    field.element.style.border = '';
+                                    field.element.style.backgroundColor = '';
+                                    field.element.removeEventListener('input', removeHighlight);
+                                    field.element.removeEventListener('change', removeHighlight);
+                                }
+                            };
+                            field.element.addEventListener('input', removeHighlight, {once: true});
+                            field.element.addEventListener('change', removeHighlight, {once: true});
+                        } else {
+                            field.element.style.border = '2px solid var(--border-color)';
+                            field.element.style.backgroundColor = 'white';
+                        }
+                    }
+                    break;
+
+                case 'class':
+                    // Класс: число от 1 до 11
+                    const classNum = parseInt(value, 10);
+                    if (isNaN(classNum) || classNum < 1 || classNum > 11 || classNum.toString() !== value) {
+                        hasErrors = true;
+                        errorMessages.push(`${field.label}: Must be a number between 1 and 11`);
+                        field.element.style.border = '2px solid #c44536';
+                        field.element.style.backgroundColor = '#fff8f8';
+
+                        const removeHighlight = () => {
+                            if (field.element) {
+                                field.element.style.border = '';
+                                field.element.style.backgroundColor = '';
+                                field.element.removeEventListener('input', removeHighlight);
+                                field.element.removeEventListener('change', removeHighlight);
+                            }
+                        };
+                        field.element.addEventListener('input', removeHighlight, {once: true});
+                        field.element.addEventListener('change', removeHighlight, {once: true});
+                    } else {
+                        field.element.style.border = '2px solid var(--border-color)';
+                        field.element.style.backgroundColor = 'white';
+                    }
+                    break;
+            }
+        }
+
+        console.log('Has errors:', hasErrors);
+        console.log('Error messages:', errorMessages);
+
+        // Если есть ошибки
+        if (hasErrors) {
+            closeMobileCart();
+
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+            const formContainer = isMobile ? document.querySelector('.mobile-form') : document.querySelector('.desktop-form');
+
+            if (formContainer) {
+                const originalBoxShadow = formContainer.style.boxShadow;
+                const originalTransition = formContainer.style.transition;
+                formContainer.style.transition = 'box-shadow 0.3s';
+                formContainer.style.boxShadow = '0 0 0 3px #c44536';
+                setTimeout(() => {
+                    formContainer.style.boxShadow = originalBoxShadow || '';
+                    formContainer.style.transition = originalTransition || '';
+                }, 2000);
+            }
+
+            // Находим первое поле с ошибкой
+            for (const [key, field] of Object.entries(fields)) {
+                if (!field.element) continue;
+
+                const value = field.value;
+
+                if (value === '' && field.element) {
+                    setTimeout(() => {
+                        field.element.focus();
+                        field.element.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    }, 500);
+                    break;
+                } else if (key === 'birthdate' && value && field.element) {
+                    if (!datePattern.test(value)) {
+                        setTimeout(() => {
+                            field.element.focus();
+                            field.element.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        }, 500);
+                        break;
+                    }
+                } else if (field.element && field.element.style.border === '2px solid #c44536') {
+                    setTimeout(() => {
+                        field.element.focus();
+                        field.element.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    }, 500);
+                    break;
+                }
+            }
+
+            // Показываем первое сообщение об ошибке
+            showToast(errorMessages[0], 'error');
+
+            return;
+        }
+
+        // Если все поля заполнены и валидны, отправляем заказ
+        console.log('All fields are valid, sending to CRM...');
+        sendToCRM();
+    };
+
+    // Вспомогательная функция для защиты от XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function (m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ===================== АВТОМАТИЧЕСКОЕ ФОРМАТИРОВАНИЕ ДАТЫ (ДОБАВИТЬ ПОСЛЕ initSupabase) =====================
+    function setupDateFields() {
+        // Десктопное поле
+        const desktopDate = document.getElementById('birthdate');
+        const desktopWrapper = desktopDate ? desktopDate.closest('.date-input-wrapper') : null;
+
+        if (desktopDate) {
+            // Функция обновления состояния плейсхолдера
+            const updateDesktopPlaceholder = () => {
+                if (desktopWrapper) {
+                    if (desktopDate.value.trim() !== '') {
+                        desktopWrapper.classList.add('filled');
+                    } else {
+                        desktopWrapper.classList.remove('filled');
+                    }
+                }
+            };
+
+            desktopDate.addEventListener('input', function (e) {
+                // Убираем все не-цифры
+                let value = this.value.replace(/\D/g, '');
+
+                // Ограничиваем 8 цифрами
+                if (value.length > 8) {
+                    value = value.slice(0, 8);
+                }
+
+                // Форматируем с автоматическими слешами
+                let formatted = '';
+                if (value.length > 0) {
+                    formatted = value.slice(0, 2);
+                    if (value.length >= 3) {
+                        formatted += '/' + value.slice(2, 4);
+                    }
+                    if (value.length >= 5) {
+                        formatted += '/' + value.slice(4, 8);
+                    }
+                }
+
+                this.value = formatted;
+                updateDesktopPlaceholder();
+
+                // Логируем для отладки
+                console.log('Desktop birthdate formatted:', formatted);
+            });
+
+            desktopDate.addEventListener('blur', updateDesktopPlaceholder);
+            desktopDate.placeholder = 'DD/MM/YYYY';
+            updateDesktopPlaceholder();
+
+            // Логируем начальное значение
+            console.log('Desktop birthdate initial:', desktopDate.value);
+        }
+
+        // Мобильное поле
+        const mobileDate = document.getElementById('mobile-birthdate');
+        const mobileWrapper = mobileDate ? mobileDate.closest('.date-input-wrapper') : null;
+
+        if (mobileDate) {
+            const updateMobilePlaceholder = () => {
+                if (mobileWrapper) {
+                    if (mobileDate.value.trim() !== '') {
+                        mobileWrapper.classList.add('filled');
+                    } else {
+                        mobileWrapper.classList.remove('filled');
+                    }
+                }
+            };
+
+            mobileDate.addEventListener('input', function (e) {
+                let value = this.value.replace(/\D/g, '');
+
+                if (value.length > 8) {
+                    value = value.slice(0, 8);
+                }
+
+                let formatted = '';
+                if (value.length > 0) {
+                    formatted = value.slice(0, 2);
+                    if (value.length >= 3) {
+                        formatted += '/' + value.slice(2, 4);
+                    }
+                    if (value.length >= 5) {
+                        formatted += '/' + value.slice(4, 8);
+                    }
+                }
+
+                this.value = formatted;
+                updateMobilePlaceholder();
+
+                // Логируем для отладки
+                console.log('Mobile birthdate formatted:', formatted);
+            });
+
+            mobileDate.addEventListener('blur', updateMobilePlaceholder);
+            mobileDate.placeholder = 'DD/MM/YYYY';
+            updateMobilePlaceholder();
+
+            // Логируем начальное значение
+            console.log('Mobile birthdate initial:', mobileDate.value);
+        }
+    }
+
+    // ===================== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ЧИСТОЙ ДАТЫ (ДЛЯ ОТПРАВКИ) =====================
+    function getRawBirthdate(isMobile) {
+        const dateField = document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate');
+        if (!dateField || !dateField.value) return '';
+
+        // Убираем все слеши, оставляем только цифры
+        return dateField.value.replace(/\//g, '');
+    }
+
+    function formatPriceWithDiscount(finalPrice, originalTotal, discountAmount, discountPercent, hasDiscount) {
+        if (hasDiscount && discountAmount > 0 && discountPercent === 10) {
+            return `
+            <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                <span style="text-decoration: line-through; color: #999; font-size: 0.9rem;">${originalTotal.toLocaleString()} THB</span>
+                <span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: bold;">-10%</span>
+                <span style="color: #e67e22; font-weight: bold; font-size: 1.2rem;">${finalPrice.toLocaleString()} THB</span>
+            </div>
+        `;
+        }
+        return `<span style="color: #007883; font-weight: bold; font-size: 1.2rem;">${finalPrice.toLocaleString()} THB</span>`;
+    }
+
+    // ===================== УТИЛИТЫ =====================
+    function resetStickyCartTop() {
+        const isMobile = window.innerWidth <= 900;
+        if (isMobile) {return}
+        const cartPanel = document.querySelector('.cart-panel');
+
+        const nav = document.getElementById('pcCategoryNav');
+        const navRect = nav.getBoundingClientRect();
+        const topOffset = navRect.top + navRect.height + 20;
+
+        cartPanel.style.top = topOffset + 'px';
+    }
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toastMessage');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.className = `toast-message ${type}`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    window.openMobileCart = function () {
+        document.getElementById('mobileCart')?.classList.add('open');
+        document.getElementById('overlay')?.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeMobileCart = function () {
+        document.getElementById('mobileCart')?.classList.remove('open');
+        document.getElementById('overlay')?.classList.remove('show');
+        document.body.style.overflow = '';
+    };
+
+    // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
+    function formatDateInput(inputElement) {
+        if (!inputElement) return;
+
+        inputElement.addEventListener('input', function (e) {
+            // Убираем все не-цифры
+            let value = this.value.replace(/\D/g, '');
+
+            // Ограничиваем 8 цифрами
+            if (value.length > 8) {
+                value = value.slice(0, 8);
+            }
+
+            // Форматируем с автоматическими слешами
+            let formatted = '';
+            if (value.length > 0) {
+                formatted = value.slice(0, 2);
+                if (value.length >= 3) {
+                    formatted += '/' + value.slice(2, 4);
+                }
+                if (value.length >= 5) {
+                    formatted += '/' + value.slice(4, 8);
+                }
+            }
+
+            this.value = formatted;
+        });
+
+        inputElement.placeholder = 'DD/MM/YYYY';
+    }
+
+    function validateEnglishOnly(value) {
+        // Разрешаем только английские буквы, пробелы, дефисы и апострофы
+        return /^[A-Za-z\s\-']*$/.test(value);
+    }
+
+    function validatePhoneNumber(value) {
+        // Разрешаем только цифры, пробелы, дефисы, плюс и скобки
+        return /^[0-9\s\-+()]*$/.test(value);
+    }
+
+    function validateClass(value) {
+        if (!value) return true;
+        const classNum = parseInt(value, 10);
+        return !isNaN(classNum) && classNum >= 1 && classNum <= 11;
+    }
+
+    // ===================== ОГРАНИЧЕНИЯ ПРИ ВВОДЕ =====================
+    function setupInputRestrictions() {
+        const isMobile = window.innerWidth <= 900;
+
+        // Текстовые поля - только английские буквы
+        const textFields = [
+            {id: isMobile ? 'mobile-clientName' : 'clientName'},
+            {id: isMobile ? 'mobile-studentFirstName' : 'studentFirstName'},
+            {id: isMobile ? 'mobile-studentLastName' : 'studentLastName'},
+            {id: isMobile ? 'mobile-clientLine' : 'clientLine'}
+        ];
+
+        textFields.forEach(({id}) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', function (e) {
+                    let value = this.value;
+                    // Удаляем все, что не английские буквы, пробелы, дефисы, апострофы
+                    let filtered = value.replace(/[^A-Za-z\s\-']/g, '');
+                    if (filtered !== value) {
+                        this.value = filtered;
+                        showToast('Use English letters only', 'error');
+                    }
+                });
+            }
+        });
+
+        // Поле телефона - только цифры и разрешенные символы
+        const phoneField = document.getElementById(isMobile ? 'mobile-clientPhone' : 'clientPhone');
+        if (phoneField) {
+            phoneField.addEventListener('input', function (e) {
+                let value = this.value;
+                let filtered = value.replace(/[^0-9\s\-+()]/g, '');
+                if (filtered !== value) {
+                    this.value = filtered;
+                }
+            });
+        }
+
+        // Поле класса - только цифры от 1 до 11
+        const classField = document.getElementById(isMobile ? 'mobile-classGrade' : 'classGrade');
+        if (classField) {
+            classField.addEventListener('input', function (e) {
+                let value = this.value;
+                // Удаляем все не-цифры
+                let filtered = value.replace(/[^0-9]/g, '');
+
+                // Ограничиваем длину до 2 символов (макс 11)
+                if (filtered.length > 2) {
+                    filtered = filtered.slice(0, 2);
+                }
+
+                // Проверяем диапазон
+                if (filtered && (parseInt(filtered) < 1 || parseInt(filtered) > 11)) {
+                    if (filtered.length === 2 && parseInt(filtered) > 11) {
+                        filtered = filtered.slice(0, 1);
+                    }
+                }
+
+                if (filtered !== value) {
+                    this.value = filtered;
+                }
+
+                // Дополнительная проверка при вводе
+                if (filtered && (parseInt(filtered) < 1 || parseInt(filtered) > 11)) {
+                    this.style.border = '2px solid #c44536';
+                    this.style.backgroundColor = '#fff8f8';
+                } else {
+                    this.style.border = '2px solid var(--border-color)';
+                    this.style.backgroundColor = 'white';
+                }
+            });
+
+            classField.addEventListener('blur', function () {
+                let value = this.value;
+                if (value) {
+                    const num = parseInt(value, 10);
+                    if (num < 1 || num > 11) {
+                        this.value = '';
+                        showToast('Class must be between 1 and 11', 'error');
+                        this.style.border = '2px solid #c44536';
+                        this.style.backgroundColor = '#fff8f8';
+                    }
+                }
+            });
+        }
+    }
+
+    function addFormHint() {
+        const isMobile = window.innerWidth <= 900;
+
+        // Находим форму
+        const formContainer = isMobile ? document.querySelector('.mobile-form') : document.querySelector('.desktop-form');
+
+        if (formContainer && !formContainer.querySelector('.form-footer-hint')) {
+            const hintDiv = document.createElement('div');
+            hintDiv.className = 'form-footer-hint';
+            hintDiv.style.cssText = `
+            margin-top: 20px;
+            padding: 12px 24px;
+            border: 2px solid #c44536;
+            border-radius: 50px;
+            background: #fff8f8;
+            color: #c44536;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            width: auto;
+            box-shadow: 0 2px 8px rgba(196, 69, 54, 0.2);
+        `;
+            hintDiv.innerHTML = ' Use English letters only';
+
+            // Создаем контейнер для центрирования
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'text-align: center; margin: 0 auto;';
+            wrapper.appendChild(hintDiv);
+
+            // Добавляем в конец формы
+            formContainer.appendChild(wrapper);
+        }
+    }
+
+    // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
+    window.sendToCRM = async function () {
+        const isMobile = window.innerWidth <= 900;
+
+        // Получаем значения полей с отладкой
+        const clientName = isMobile ?
+            document.getElementById('mobile-clientName')?.value.trim() :
+            document.getElementById('clientName')?.value.trim();
+
+        const clientPhone = isMobile ?
+            document.getElementById('mobile-clientPhone')?.value.trim() :
+            document.getElementById('clientPhone')?.value.trim();
+
+        const clientLine = isMobile ?
+            document.getElementById('mobile-clientLine')?.value.trim() :
+            document.getElementById('clientLine')?.value.trim();
+
+        const studentFirstName = isMobile ?
+            document.getElementById('mobile-studentFirstName')?.value.trim() :
+            document.getElementById('studentFirstName')?.value.trim();
+
+        const studentLastName = isMobile ?
+            document.getElementById('mobile-studentLastName')?.value.trim() :
+            document.getElementById('studentLastName')?.value.trim();
+
+        const birthdateField = isMobile ?
+            document.getElementById('mobile-birthdate') :
+            document.getElementById('birthdate');
+
+        const birthdateRaw = birthdateField?.value?.trim() || '';
+
+        const classGrade = isMobile ?
+            document.getElementById('mobile-classGrade')?.value.trim() :
+            document.getElementById('classGrade')?.value.trim();
+
+        const statusDiv = document.getElementById('crmStatus');
+        if (!statusDiv) return;
+
+        statusDiv.style.display = 'block';
+
+        // ДОБАВЛЯЕМ ОТЛАДКУ
+        console.log('=== SEND TO CRM ===');
+        console.log('clientName:', clientName);
+        console.log('clientPhone:', clientPhone);
+        console.log('clientLine:', clientLine);
+        console.log('studentFirstName:', studentFirstName);
+        console.log('studentLastName:', studentLastName);
+        console.log('birthdateRaw:', birthdateRaw);
+        console.log('birthdateField value:', birthdateField?.value);
+        console.log('classGrade:', classGrade);
+        console.log('cart length:', cart.length);
+
+        // Проверяем обязательные поля (включая Line ID и дату рождения)
+        if (!clientName || !clientPhone || !clientLine || !studentFirstName || !studentLastName || !birthdateRaw || !classGrade) {
+            console.log('Missing fields detected');
+            statusDiv.className = 'status-message status-error';
+            statusDiv.textContent = 'Please fill all required fields (including Line ID and Birthdate)';
+
+            // Подсвечиваем незаполненные поля
+            const fieldsToCheck = {
+                clientName: isMobile ? 'mobile-clientName' : 'clientName',
+                clientPhone: isMobile ? 'mobile-clientPhone' : 'clientPhone',
+                clientLine: isMobile ? 'mobile-clientLine' : 'clientLine',
+                studentFirstName: isMobile ? 'mobile-studentFirstName' : 'studentFirstName',
+                studentLastName: isMobile ? 'mobile-studentLastName' : 'studentLastName',
+                birthdate: isMobile ? 'mobile-birthdate' : 'birthdate',
+                classGrade: isMobile ? 'mobile-classGrade' : 'classGrade'
+            };
+
+            for (const [key, id] of Object.entries(fieldsToCheck)) {
+                const field = document.getElementById(id);
+                if (field && (!field.value || field.value.trim() === '')) {
+                    field.style.border = '2px solid #c44536';
+                    field.style.backgroundColor = '#fff8f8';
+                    field.addEventListener('input', function () {
+                        this.style.border = '';
+                        this.style.backgroundColor = '';
+                    }, {once: true});
+                }
+            }
+
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+            return;
+        }
+
+        // Проверяем формат даты (должно быть DD/MM/YYYY)
+        const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        if (!datePattern.test(birthdateRaw)) {
+            console.log('Invalid date format:', birthdateRaw);
+            statusDiv.className = 'status-message status-error';
+            statusDiv.textContent = 'Invalid birthdate format. Please use DD/MM/YYYY (enter only numbers)';
+
+            const birthdateFieldElem = document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate');
+            if (birthdateFieldElem) {
+                birthdateFieldElem.style.border = '2px solid #c44536';
+                birthdateFieldElem.style.backgroundColor = '#fff8f8';
+                birthdateFieldElem.addEventListener('input', function () {
+                    this.style.border = '';
+                    this.style.backgroundColor = '';
+                }, {once: true});
+            }
+
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+            return;
+        }
+
+        // Проверяем корректность даты
+        const match = datePattern.exec(birthdateRaw);
+        if (match) {
+            const day = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10);
+            const year = parseInt(match[3], 10);
+
+            const date = new Date(year, month - 1, day);
+            const isValidDate = date.getFullYear() === year &&
+                date.getMonth() === month - 1 &&
+                date.getDate() === day &&
+                year >= 1900 &&
+                year <= new Date().getFullYear();
+
+            if (!isValidDate) {
+                console.log('Invalid date values:', {day, month, year});
+                statusDiv.className = 'status-message status-error';
+                statusDiv.textContent = 'Invalid date. Please check day, month, and year';
+
+                const birthdateFieldElem = document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate');
+                if (birthdateFieldElem) {
+                    birthdateFieldElem.style.border = '2px solid #c44536';
+                    birthdateFieldElem.style.backgroundColor = '#fff8f8';
+                }
+
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+                return;
+            }
+        }
+
+        if (cart.length === 0) {
+            console.log('Cart is empty');
+            statusDiv.className = 'status-message status-error';
+            statusDiv.textContent = 'Cart is empty';
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+            return;
+        }
+
+        console.log('All validations passed, sending order...');
+        statusDiv.className = 'status-message';
+        statusDiv.textContent = 'Sending...';
+        document.getElementById('bottomSendBtn').disabled = true;
+
+        // Формируем данные для отправки
+        const items = cart.map(item => ({
+            sku: item.sku,
+            quantity: item.quantity,
+            isPackage: item.isPackage || false,
+            price: item.price,
+            bonus_type: item.bonus_type,
+            bonus_value: item.bonus_value
+        }));
+
+        const orderData = {
+            customer: {
+                clientName: clientName,
+                clientPhone: clientPhone,
+                clientLine: clientLine || '',
+                studentFirstName: studentFirstName,
+                studentLastName: studentLastName,
+                birthdate: birthdateRaw, // Уже в формате DD/MM/YYYY
+                classGrade: classGrade
+            },
+            items: items
+        };
+
+        console.log('Sending order data:', orderData);
+
+        try {
+            const response = await fetch('https://afgzicjirrdzrotgooea.supabase.co/functions/v1/create_order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+
+            console.log('Response:', result);
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to send order');
+            }
+
+            // Показываем информацию о скидке
+            let successMessage = 'Order sent successfully!';
+            if (result.payment_info && result.payment_info.discount_applied > 0) {
+                successMessage = `Order sent! Discount: ${result.payment_info.discount_applied} THB. Total: ${result.payment_info.final_to_pay} THB`;
+            }
+
+            statusDiv.className = 'status-message status-success';
+            statusDiv.textContent = successMessage;
+
+            // Очищаем корзину
+            cart = [];
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartUI();
+            renderCategories();
+            closeMobileCart();
+
+            // Очищаем форму
+            if (isMobile) {
+                const mobileClientName = document.getElementById('mobile-clientName');
+                const mobileClientPhone = document.getElementById('mobile-clientPhone');
+                const mobileClientLine = document.getElementById('mobile-clientLine');
+                const mobileStudentFirstName = document.getElementById('mobile-studentFirstName');
+                const mobileStudentLastName = document.getElementById('mobile-studentLastName');
+                const mobileBirthdate = document.getElementById('mobile-birthdate');
+                const mobileClassGrade = document.getElementById('mobile-classGrade');
+
+                if (mobileClientName) mobileClientName.value = '';
+                if (mobileClientPhone) mobileClientPhone.value = '';
+                if (mobileClientLine) mobileClientLine.value = '';
+                if (mobileStudentFirstName) mobileStudentFirstName.value = '';
+                if (mobileStudentLastName) mobileStudentLastName.value = '';
+                if (mobileBirthdate) mobileBirthdate.value = '';
+                if (mobileClassGrade) mobileClassGrade.value = '';
+            } else {
+                const clientNameEl = document.getElementById('clientName');
+                const clientPhoneEl = document.getElementById('clientPhone');
+                const clientLineEl = document.getElementById('clientLine');
+                const studentFirstNameEl = document.getElementById('studentFirstName');
+                const studentLastNameEl = document.getElementById('studentLastName');
+                const birthdateEl = document.getElementById('birthdate');
+                const classGradeEl = document.getElementById('classGrade');
+
+                if (clientNameEl) clientNameEl.value = '';
+                if (clientPhoneEl) clientPhoneEl.value = '';
+                if (clientLineEl) clientLineEl.value = '';
+                if (studentFirstNameEl) studentFirstNameEl.value = '';
+                if (studentLastNameEl) studentLastNameEl.value = '';
+                if (birthdateEl) birthdateEl.value = '';
+                if (classGradeEl) classGradeEl.value = '';
+            }
+
+            // Показываем тост с деталями заказа
+            if (result.payment_info) {
+                showToast(`Order #${result.order_id?.substring(0, 8)} | Total: ${result.payment_info.final_to_pay} THB`, 'success');
+            } else {
+                showToast('Order sent successfully!', 'success');
+            }
+
+        } catch (error) {
+            console.error('Error sending order:', error);
+            statusDiv.className = 'status-message status-error';
+            statusDiv.textContent = 'Error sending order: ' + (error.message || 'Unknown error');
+            showToast('Failed to send order: ' + (error.message || 'Unknown error'), 'error');
+        } finally {
+            document.getElementById('bottomSendBtn').disabled = false;
+
+            // Скрываем статус через 5 секунд
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+    };
+
+    // ===================== ИНИЦИАЛИЗАЦИЯ ПОЛЕЙ ДАТЫ =====================
+    function initDateFields() {
+        const desktopDate = document.getElementById('birthdate');
+        const mobileDate = document.getElementById('mobile-birthdate');
+
+        if (desktopDate) {
+            formatDateInput(desktopDate);
+        }
+
+        if (mobileDate) {
+            formatDateInput(mobileDate);
+        }
+    }
+
+    // ===================== ЯЗЫК =====================
+    document.getElementById('langToggle')?.addEventListener('click', function () {
+        currentLang = currentLang === 'th' ? 'en' : 'th';
+        document.getElementById('lang-icon').textContent = currentLang === 'th' ? '🇹🇭' : '🇬🇧';
+        document.getElementById('lang-text').textContent = currentLang === 'th' ? 'TH' : 'EN';
+
+        if (products.length > 0) {
+            renderCategories();
+        }
+    });
+
+    // ===================== ИНИЦИАЛИЗАЦИЯ =====================
+    document.addEventListener('DOMContentLoaded', function () {
+        initSupabase();
+        document.getElementById('overlay')?.addEventListener('click', closeMobileCart);
+        setupDateFields();
+        setupInputRestrictions(); // Добавляем ограничения при вводе
+        addFormHint(); // Добавляем подсказку
+        resetStickyCartTop();
+    });
+
+    // Добавляем кэширование изображений
+    document.addEventListener('DOMContentLoaded', function () {
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+            img.loading = 'lazy';
+            img.decoding = 'async';
+        });
+    });
+
+    window.addEventListener('resize', function() {
+        resetStickyCartTop();
+    });
+
+    // Оптимизация скролла
+    let scrollTimeout;
+    //TODO без этой дряни нет эпилептических припадков у шапки на яблоках, надо понять зачем это вообще здесь было
+    // window.addEventListener('scroll', function () {
+    //     if (scrollTimeout) {
+    //         window.cancelAnimationFrame(scrollTimeout);
+    //     }
+    //     scrollTimeout = window.requestAnimationFrame(function () {
+    //         // Оптимизация при скролле
+    //     });
+    // }, {passive: true});
+</script>
+
+<!-- Загружаем полный CSS асинхронно -->
+<style>
+    img {
+        color: #999eaa; /* Цвет текста ошибки */
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 24px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    /* Полные стили из вашего исходного файла */
+    .top-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--bg-secondary);
+        padding: 0.6rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 20px var(--shadow-color);
+        border-bottom: 3px solid var(--accent-primary);
+    }
+
+    .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .logo-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 0;
+        object-fit: contain;
+        border: none;
+        background: transparent;
+    }
+
+    .logo-text {
+        font-weight: 800;
+        font-size: 1.4rem;
+        color: var(--accent-primary);
+        white-space: nowrap;
+    }
+
+    .right-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-left: auto;
+    }
+
+    .search-container {
+        position: relative;
+        width: 400px;
+        min-width: 250px;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        background: white;
+        border-radius: 50px;
+        padding: 0.2rem 0.2rem 0.2rem 1.5rem;
+        border: 2px solid var(--accent-primary);
+        box-shadow: 0 2px 8px var(--shadow-color);
+    }
+
+    .search-box input {
+        background: transparent;
+        border: none;
+        padding: 0.7rem 0;
+        width: 100%;
+        outline: none;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .search-box button {
+        background: var(--accent-primary);
+        border: none;
+        color: white;
+        padding: 0.7rem 1.8rem;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 10px var(--shadow-color);
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+
+    .search-box button:hover {
+        background: var(--accent-hover);
+        transform: scale(1.02);
+    }
+
+    .lang-toggle {
+        background: white;
+        border: 2px solid var(--accent-primary);
+        border-radius: 50px;
+        padding: 0.5rem 1.2rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+        color: var(--accent-primary);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.2s;
+        flex-shrink: 0;
+    }
+
+    .lang-toggle:hover {
+        background: var(--accent-primary);
+        color: white;
+    }
+
+    .pc-category-nav {
+        background: rgba(136, 221, 222, 0.8);
+        padding: 0.2rem 2rem;
+        border-bottom: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2rem;
+        align-items: center;
+        justify-content: flex-start;
+        position: sticky;
+        top: 80px;
+        z-index: 45;
+        box-shadow: 0 4px 15px var(--shadow-color);
+        backdrop-filter: blur(5px);
+        margin: 0;
+        width: 100%;
+        left: 0;
+        right: 0;
+        box-sizing: border-box;
+    }
+
+    .pc-category-nav .nav-btn {
+        padding: 0.3rem 0.8rem;
+        background: transparent;
+        border: none;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.2s;
+        width: auto;
+        min-width: 0;
+        display: inline-block;
+        text-align: left;
+        line-height: 1.2;
+    }
+
+    .pc-category-nav .nav-btn:hover {
+        background: transparent;
+        color: var(--accent-primary);
+        text-decoration: underline;
+        transform: translateY(-1px);
+    }
+
+    .mobile-category-nav {
+        display: none;
+        background: rgba(136, 221, 222, 0.9);
+        padding: 0.2rem 1rem;
+        border-bottom: none;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        backdrop-filter: blur(5px);
+        margin: 0;
+        width: 100%;
+        left: 0;
+        right: 0;
+        box-sizing: border-box;
+        position: sticky;
+        top: 80px;
+        z-index: 45;
+        box-shadow: 0 4px 15px var(--shadow-color);
+    }
+
+    .mobile-category-nav .cat-link {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        background: transparent;
+        border: none;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+        text-decoration: none;
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+
+    .main-layout {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+        max-width: 1600px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .catalog {
+        min-width: 0;
+        position: relative;
+        padding-bottom: 4rem;
+    }
+
+    .desktop-form {
+        background: white;
+        border-radius: 30px;
+        padding: 1.8rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--accent-primary);
+        box-shadow: 0 8px 20px var(--shadow-color);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid var(--accent-primary);
+    }
+
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-field {
+        flex: 1 1 200px;
+        position: relative;
+    }
+
+    .form-field input, .form-field select {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        font-size: 0.95rem;
+        background: white;
+        transition: 0.2s;
+    }
+
+    .optional-badge {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #888;
+        font-size: 0.8rem;
+        background: #f0f0f0;
+        padding: 4px 10px;
+        border-radius: 30px;
+        pointer-events: none;
+    }
+
+    .mobile-form {
+        display: none;
+        background: white;
+        border-radius: 30px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--accent-primary);
+        box-shadow: 0 8px 20px var(--shadow-color);
+    }
+
+    .mobile-form h3 {
+        font-size: 1.2rem;
+        color: var(--accent-primary);
+        margin: 1.2rem 0 0.8rem;
+        font-weight: 700;
+        padding-bottom: 0.3rem;
+        border-bottom: 2px solid var(--accent-primary);
+    }
+
+    .mobile-field {
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .mobile-field input, .mobile-field select {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        font-size: 1rem;
+        transition: 0.2s;
+        background: white;
+    }
+
+    .date-input-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .date-input-wrapper input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        font-size: 0.95rem;
+        background: white;
+        transition: 0.2s;
+    }
+
+    .date-placeholder {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #888;
+        font-size: 0.95rem;
+        pointer-events: none;
+        transition: 0.2s;
+        background: white;
+        padding: 0 0.3rem;
+    }
+
+    .date-input-wrapper.filled .date-placeholder,
+    .date-input-wrapper input:focus + .date-placeholder {
+        top: 0;
+        font-size: 0.75rem;
+        color: var(--accent-primary);
+    }
+
+    .send-crm-btn {
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        padding: 1.2rem 4rem;
+        border-radius: 60px;
+        font-weight: 800;
+        font-size: 1.6rem;
+        cursor: pointer;
+        box-shadow: 0 8px 25px var(--shadow-color);
+        transition: 0.2s;
+        border: 3px solid white;
+    }
+
+    .send-crm-btn:hover {
+        background: var(--accent-hover);
+        transform: scale(1.05);
+    }
+
+    .send-crm-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .bottom-ok {
+        text-align: center;
+        margin: 4rem 0 2rem;
+        z-index: 20;
+    }
+
+    .status-message {
+        margin: 1rem 0;
+        padding: 1rem;
+        border-radius: 50px;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 600;
+        width: 100%;
+    }
+
+    .status-success {
+        background: var(--success-bg);
+        color: var(--success-text);
+        border: 2px solid var(--success-text);
+    }
+
+    .status-error {
+        background: var(--error-bg);
+        color: var(--error-text);
+        border: 2px solid var(--error-text);
+    }
+
+    .category {
+        margin-top: 3rem;
+        scroll-margin-top: 150px;
+    }
+
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 3px solid var(--accent-primary);
+        padding-bottom: 0.7rem;
+        margin-bottom: 2rem;
+    }
+
+    .category-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        min-height: 200px;
+    }
+
+    .empty-category {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-muted);
+        font-size: 1.2rem;
+        background: white;
+        border-radius: 30px;
+        border: 2px dashed var(--border-color);
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 30px;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .product-card:hover {
+        border-color: var(--accent-primary);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px var(--shadow-color);
+    }
+
+    .product-image {
+        width: calc(100% + 2rem);
+        margin: -1rem -1rem 0.5rem -1rem;
+        border-radius: 16px 16px 0 0;
+        border: none;
+        border-bottom: 1px solid var(--border-color);
+        aspect-ratio: 1/1;
+        overflow: hidden;
+        background: #f0f0f0;
+        cursor: pointer;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-header {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin-bottom: 0.2rem;
+        flex-wrap: wrap;
+    }
+
+    .product-sku {
+        font-weight: 600;
+        color: var(--accent-primary);
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .product-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0;
+    }
+
+    .product-specs {
+        background: transparent;
+        border: none;
+        padding: 0;
+        margin: 0 0 0.3rem 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .product-spec-item {
+        display: block;
+        margin: 0;
+        padding: 0;
+        line-height: 1.3;
+    }
+
+    .spec-label {
+        font-weight: 600;
+        color: var(--accent-primary);
+        margin-right: 0.2rem;
+    }
+
+    .photos-count {
+        margin: 0;
+        padding: 0;
+        border: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--accent-primary);
+        line-height: 1.3;
+    }
+
+    .package-items {
+        margin: 0;
+        padding: 0;
+    }
+
+    .package-item {
+        margin: 0;
+        padding: 0;
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    .product-qty {
+        margin: 0;
+        padding: 0;
+        border: none;
+    }
+
+    .qty-line {
+        margin: 0;
+        padding: 0;
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    .package-description {
+        background: var(--bg-form);
+        padding: 0.8rem;
+        border-radius: 16px;
+        margin: 0.5rem 0;
+        border: 2px solid var(--border-color);
+        font-size: 0.85rem;
+        line-height: 1.4;
+        white-space: pre-line;
+    }
+
+    .price-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.3rem;
+        padding: 0 0.2rem;
+        min-height: 40px;
+    }
+
+    .price-wrapper {
+        display: flex;
+        align-items: baseline;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+    }
+
+    .price {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--price-color);
+        white-space: nowrap;
+    }
+
+    .old-price {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: line-through;
+        white-space: nowrap;
+    }
+
+    .add-to-cart-btn {
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 6px 15px var(--shadow-color);
+        transition: 0.2s;
+        flex-shrink: 0;
+        margin-right: 0.2rem;
+    }
+
+    .add-to-cart-btn:hover {
+        background: var(--accent-hover);
+        transform: scale(1.15);
+    }
+
+    .in-cart-badge {
+        background: var(--accent-primary);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 6px 15px var(--shadow-color);
+        border: 2px solid white;
+        flex-shrink: 0;
+        margin-right: 0.2rem;
+    }
+
+    .cart-panel {
+        background: white;
+        border-radius: 30px;
+        padding: 1.8rem;
+        border: 2px solid var(--accent-primary);
+        position: sticky;
+        top: 141px;
+        max-height: calc(100vh - 180px);
+        overflow-y: auto;
+        box-shadow: 0 15px 35px var(--shadow-color);
+    }
+
+    .cart-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        padding-bottom: 1.2rem;
+        border-bottom: 3px solid var(--accent-primary);
+        display: flex;
+        justify-content: space-between;
+        color: var(--accent-primary);
+    }
+
+    .cart-count {
+        background: var(--accent-primary);
+        color: white;
+        padding: 0.4rem 1.2rem;
+        border-radius: 40px;
+    }
+
+    .cart-items {
+        max-height: 350px;
+        overflow-y: auto;
+        margin-bottom: 1.2rem;
+    }
+
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    .cart-item-name .item-sku {
+        font-weight: 600;
+        color: var(--accent-primary);
+        background: var(--accent-light);
+        padding: 2px 8px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        margin-right: 6px;
+        display: inline-block;
+    }
+
+    .cart-item-name {
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: var(--accent-primary);
+    }
+
+    .cart-item-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-button);
+        padding: 0.4rem;
+        border-radius: 40px;
+    }
+
+    .cart-item-controls button {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: white;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--accent-primary);
+        border: 2px solid var(--accent-primary);
+    }
+
+    .cart-total {
+        font-size: 1.5rem;
+        font-weight: 800;
+        border-top: 3px solid var(--accent-primary);
+        padding-top: 1.2rem;
+        display: flex;
+        justify-content: space-between;
+        color: var(--accent-primary);
+    }
+
+    .mobile-cart-button {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 1rem 1.5rem;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 10px 25px var(--shadow-color);
+        z-index: 1000;
+        align-items: center;
+        gap: 8px;
+        border: 2px solid white;
+        cursor: pointer;
+    }
+
+    .mobile-cart-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top-left-radius: 40px;
+        border-top-right-radius: 40px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+        z-index: 2000;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
+        max-height: 85vh;
+        overflow-y: auto;
+        border-top: 3px solid var(--accent-primary);
+        visibility: hidden;
+    }
+
+    .mobile-cart-panel.open {
+        transform: translateY(0);
+        visibility: visible;
+    }
+
+    .mobile-cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--accent-primary);
+    }
+
+    .close-cart {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--accent-primary);
+        padding: 0.5rem 1rem;
+    }
+
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1500;
+        backdrop-filter: blur(3px);
+    }
+
+    .overlay.show {
+        display: block;
+    }
+
+    .toast-message {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--accent-primary);
+        color: white;
+        padding: 1.2rem 2.5rem;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        box-shadow: 0 10px 30px var(--shadow-color);
+        z-index: 2100;
+        display: none;
+        border: 3px solid white;
+    }
+
+    .toast-message.show {
+        display: block;
+    }
+
+    .toast-message.success {
+        background: var(--success-text);
+    }
+
+    .toast-message.error {
+        background: var(--error-text);
+    }
+
+    /* ========== ВЫРАВНИВАНИЕ КАРТОЧЕК ПО ВЫСОТЕ ========== */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        align-items: stretch;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 30px;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Прижимаем цену и кнопку к низу карточки */
+    .price-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding: 12px 0 4px 0;
+        min-height: 56px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .price-wrapper {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    /* ========== SIZE И POSE НА ОДНОЙ СТРОКЕ, КОМПАКТНО ========== */
+    /* ========== SIZE И POSE - БЕЗ РАМОК, КРУПНЫЙ ТЕКСТ ========== */
+    .product-specs-info {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 12px !important;
+        margin: 8px 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .spec-info-item {
+        display: inline-flex !important;
+        align-items: baseline !important;
+        gap: 6px !important;
+        background: transparent !important;
+        padding: 0 !important;
+        border: none !important;
+        white-space: normal !important;
+    }
+
+    .spec-label {
+        font-weight: 700 !important;
+        color: var(--accent-primary) !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 0.9rem !important;
+    }
+
+    .spec-value {
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Стили для селекта вариантов */
+    .variant-selector-wrapper {
+        margin: 8px 0;
+    }
+
+    .variant-selector {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .variant-selector:hover {
+        border-color: var(--accent-primary);
+    }
+
+    .variant-selector:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px var(--shadow-color);
+    }
+
+
+    @media (min-width: 901px) {
+        .pc-category-nav {
+            display: flex !important;
+        }
+
+        .mobile-category-nav {
+            display: none !important;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            align-items: stretch !important;
+        }
+
+        .product-card {
+            padding: 1.2rem !important;
+        }
+
+        .product-image {
+            width: calc(100% + 2.4rem) !important;
+            margin: -1.2rem -1.2rem 0.8rem -1.2rem !important;
+        }
+
+        /* ========== SKU И НАЗВАНИЕ - БОЛЬШИЕ И ПОЛНЫЕ ========== */
+        .product-header {
+            display: flex !important;
+            align-items: baseline !important;
+            gap: 8px !important;
+            margin-bottom: 12px !important;
+            flex-wrap: wrap !important;
+        }
+
+        .product-sku {
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            color: var(--accent-primary) !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+        }
+
+        .product-title {
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            color: var(--text-primary) !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            line-height: 1.3 !important;
+            flex: 1 !important;
+        }
+
+        /* ========== SIZE И POSE - АДАПТИВНЫЙ РАЗМЕР ========== */
+        .product-specs-info {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: clamp(12px, 2vw, 24px) !important;
+            margin: 12px 0 !important;
+            align-items: end !important;
+        }
+
+        .spec-info-item {
+            display: inline-flex !important;
+            align-items: baseline !important;
+            gap: clamp(4px, 1vw, 8px) !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            white-space: normal !important;
+        }
+
+        .spec-label {
+            font-weight: 700 !important;
+            color: var(--accent-primary) !important;
+            font-size: clamp(0.9rem, 1.2vw, 1.2rem) !important;
+            white-space: nowrap !important;
+        }
+
+        .spec-value {
+            font-weight: 600 !important;
+            color: var(--text-primary) !important;
+            font-size: clamp(0.9rem, 1.2vw, 1.2rem) !important;
+            white-space: normal;
+        }
+
+        /* ========== ЦЕНА ========== */
+        .price-area {
+            min-height: 56px !important;
+            height: 56px !important;
+            margin-top: auto !important;
+            padding: 12px 0 4px 0 !important;
+        }
+
+        .price {
+            font-size: clamp(1.3rem, 2vw, 1.8rem) !important;
+            font-weight: 800 !important;
+        }
+
+        /* ========== КНОПКА ========== */
+        .add-to-cart-btn, .in-cart-badge {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            max-width: 48px !important;
+            font-size: 26px !important;
+        }
+
+        /* ========== СЕЛЕКТ ========== */
+        .variant-selector {
+            font-size: clamp(0.9rem, 1vw, 1.1rem) !important;
+            padding: 10px 12px !important;
+        }
+
+        /* ========== ОПИСАНИЕ ========== */
+        .package-description {
+            font-size: clamp(0.9rem, 1vw, 1rem) !important;
+            margin: 10px 0 !important;
+            line-height: 1.4 !important;
+        }
+
+        /* ========== ПАКЕТЫ ========== */
+        .info-badge {
+            font-size: clamp(0.9rem, 1vw, 1rem) !important;
+        }
+
+        .package-item {
+            font-size: clamp(0.85rem, 0.9vw, 0.95rem) !important;
+        }
+    }
+
+
+    @media (max-width: 900px) {
+        /* Скрываем ПК навигацию на мобильных */
+        .pc-category-nav {
+            display: none !important;
+        }
+
+        /* Показываем и стилизуем мобильную навигацию */
+        .mobile-category-nav {
+            display: flex !important;
+            position: sticky !important;
+            top: 97px !important;
+            z-index: 999 !important;
+            background: rgba(136, 221, 222, 0.95) !important;
+            backdrop-filter: blur(5px) !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+            gap: 2px !important;
+            border-bottom: 1px solid var(--accent-primary) !important;
+            box-shadow: 0 4px 15px var(--shadow-color) !important;
+            -webkit-overflow-scrolling: touch !important;
+            scrollbar-width: none !important;
+            box-sizing: border-box !important;
+            min-height: 52px !important;
+            align-items: stretch !important;
+        }
+
+        .mobile-category-nav .cat-link {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0.6rem 1.2rem !important;
+            background: transparent !important;
+            border: none !important;
+            color: var(--accent-primary) !important;
+            font-weight: 700 !important;
+            font-size: 0.9rem !important;
+            white-space: nowrap !important;
+            cursor: pointer !important;
+            min-width: fit-content !important;
+            height: auto !important;
+            flex: 0 0 auto !important;
+            text-decoration: none !important;
+            text-transform: uppercase !important;
+        }
+
+        .mobile-category-nav .cat-link:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            right: -1px;
+            top: 25%;
+            height: 50%;
+            width: 1px;
+            background: var(--accent-primary) !important;
+            opacity: 0.3;
+        }
+
+        .mobile-category-nav .cat-link:hover {
+            background: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .mobile-category-nav .cat-link.active {
+            background: white !important;
+            font-weight: 800 !important;
+            box-shadow: inset 0 -2px 0 var(--accent-primary) !important;
+        }
+
+        /* Скрываем правую панель корзины */
+        .cart-panel {
+            display: none;
+        }
+
+        /* Показываем мобильную кнопку корзины */
+        .mobile-cart-button {
+            display: flex;
+        }
+
+        /* Скрываем десктопную форму, показываем мобильную */
+        .desktop-form {
+            display: none;
+        }
+
+        .mobile-form {
+            display: block;
+        }
+
+        /* Топ-бар */
+        .top-bar {
+            position: sticky !important;
+            padding: 0.5rem 1rem !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+
+        .logo-area {
+            width: 100% !important;
+        }
+
+        .right-actions {
+            width: 100% !important;
+        }
+
+        .search-container {
+            flex: 1 !important;
+        }
+
+        .search-box {
+            height: 40px !important;
+        }
+
+        .search-box button {
+            padding: 0.4rem 1.2rem !important;
+            height: 34px !important;
+            font-size: 0.85rem !important;
+        }
+
+        .lang-toggle {
+            padding: 0.3rem 0.8rem !important;
+            height: 40px !important;
+            min-width: 60px !important;
+        }
+
+        /* Основной контент */
+        .main-layout {
+            display: block !important;
+            padding: 1rem 1rem 80px 1rem !important;
+        }
+
+        .category {
+            margin-top: 1.5rem !important;
+            scroll-margin-top: 150px !important;
+        }
+
+        .category:first-of-type {
+            margin-top: 0 !important;
+        }
+
+        .category-title {
+            font-size: 1.4rem !important;
+        }
+
+        /* Сетка товаров */
+        .product-image {
+            width: calc(100% + 1.2rem) !important;
+            margin: -0.6rem -0.6rem 0.4rem -0.6rem !important;
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        .product-header {
+            display: flex !important;
+            align-items: baseline !important;
+            gap: 6px !important;
+            margin-bottom: 6px !important;
+            flex-wrap: wrap !important;
+        }
+
+        .product-sku {
+            font-size: 0.9rem !important;
+            font-weight: 700 !important;
+            color: var(--accent-primary) !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
+
+        .product-title {
+            font-size: 0.9rem !important;
+            font-weight: 700 !important;
+            color: var(--text-primary) !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            flex: 1 !important;
+        }
+
+        /* ========== SIZE И POSE - МАКСИМАЛЬНО ПРИЖАТЫ, КРУПНЫЙ ТЕКСТ ========== */
+        .product-specs-info {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 4px !important;
+            margin: 6px 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            align-items: end !important;
+        }
+
+        .spec-info-item {
+            display: inline-flex !important;
+            align-items: baseline !important;
+            gap: 2px !important;
+            background: transparent !important;
+            padding: 0 !important;
+            border: none !important;
+            white-space: normal !important;
+            margin-right: 0 !important;
+        }
+
+        .spec-label {
+            font-weight: 700 !important;
+            color: var(--accent-primary) !important;
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: 0.85rem !important;
+        }
+
+        .spec-value {
+            font-weight: 600 !important;
+            color: var(--text-primary) !important;
+            font-size: 0.85rem !important;
+        }
+
+        /* ========== ЦВЕТ (COLOR) - ОТДЕЛЬНОЙ СТРОКОЙ ========== */
+        .spec-info-item:has(.spec-label:contains("Color")) {
+            display: block !important;
+            width: 100% !important;
+            margin-top: 2px !important;
+            white-space: normal !important;
+        }
+
+        /* ========== ЦЕНА - КРУПНО ========== */
+        /* ========== СЕЛЕКТ ========== */
+        .variant-selector-wrapper {
+            margin: 6px 0 !important;
+        }
+
+        .variant-selector {
+            width: 100% !important;
+            padding: 8px 10px !important;
+            font-size: 0.8rem !important;
+            min-height: 38px !important;
+        }
+
+        /* ========== ОПИСАНИЕ ========== */
+        .package-description {
+            font-size: 0.7rem !important;
+            padding: 4px 0 !important;
+            margin: 4px 0 !important;
+            background: transparent !important;
+            border: none !important;
+            color: var(--text-secondary) !important;
+            line-height: 1.3 !important;
+        }
+
+        /* ========== ЦЕНА И КНОПКА ========== */
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.8rem !important;
+            align-items: stretch !important;
+        }
+
+        .product-card {
+            padding: 0.6rem !important;
+            border-radius: 16px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+        }
+
+        /* Цена и кнопка прижаты к низу */
+        .price-area {
+            min-height: 40px !important;
+            padding: 6px 0 0 0 !important;
+            margin-top: auto !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+        }
+
+        .price {
+            font-size: 1rem !important;
+            font-weight: 800 !important;
+        }
+
+        .add-to-cart-btn, .in-cart-badge {
+            width: 34px !important;
+            height: 34px !important;
+            min-width: 34px !important;
+            max-width: 34px !important;
+            font-size: 18px !important;
+        }
+
+        /* ========== ПАКЕТЫ ========== */
+        .info-badge {
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 4px 0 !important;
+            font-size: 0.7rem !important;
+            color: var(--accent-primary) !important;
+            font-weight: 500 !important;
+        }
+
+        .package-items {
+            background: transparent !important;
+            padding: 4px 0 !important;
+            margin: 4px 0 !important;
+            border: none !important;
+        }
+
+        .info-label {
+            font-weight: 600 !important;
+            color: var(--accent-primary) !important;
+            font-size: 0.7rem !important;
+            margin-bottom: 2px !important;
+        }
+
+        .package-item {
+            font-size: 0.7rem !important;
+            padding: 2px 0 !important;
+            padding-left: 12px !important;
+            color: var(--text-secondary) !important;
+            position: relative !important;
+        }
+
+        .package-item::before {
+            content: "•" !important;
+            position: absolute !important;
+            left: 0 !important;
+            color: var(--accent-primary) !important;
+        }
+    }
+
+    /* ========== ОСНОВНЫЕ СТИЛИ ДЛЯ ВСЕХ УСТРОЙСТВ ========== */
+    /* SKU и название */
+    .product-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .product-sku {
+        font-weight: 600;
+        color: var(--accent-primary);
+        font-size: 0.85rem;
+    }
+
+    .product-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    /* Характеристики Size и Pose */
+    .product-specs-info {
+        display: flex;
+        flex-wrap: wrap;
+        flex-grow: 1;
+        gap: 12px;
+        margin: 8px 0;
+        align-items: end;
+    }
+
+    .spec-info-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        background: transparent;
+        padding: 0;
+        border: none;
+        white-space: normal;
+    }
+
+    .spec-label {
+        font-weight: 700;
+        color: var(--accent-primary);
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        font-size: 0.85rem;
+    }
+
+    .spec-value {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+    }
+
+    /* Убираем старые стили */
+    .product-specs-row {
+        display: none;
+    }
+
+    .spec-separator {
+        display: none;
+    }
+
+    /* Селект вариантов */
+    .variant-selector {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .variant-selector:hover {
+        border-color: var(--accent-primary);
+    }
+
+    .variant-selector:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px var(--shadow-color);
+    }
+
+    /* Описание без рамок */
+    .package-description {
+        background: transparent;
+        padding: 0;
+        margin: 8px 0;
+        border: none;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        color: var(--text-secondary);
+    }
+
+    /* Информационные блоки для пакетов без рамок */
+    .info-badge {
+        background: transparent;
+        padding: 0;
+        margin: 4px 0;
+        font-size: 0.85rem;
+        color: var(--accent-primary);
+        font-weight: 500;
+    }
+
+    .package-items {
+        background: transparent;
+        padding: 4px 0;
+        margin: 4px 0;
+        border: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--accent-primary);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+
+    .package-item {
+        font-size: 0.8rem;
+        padding: 2px 0;
+        padding-left: 16px;
+        position: relative;
+        color: var(--text-secondary);
+    }
+
+    .package-item::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--accent-primary);
+    }
+</style>
+</body>
+</html>
