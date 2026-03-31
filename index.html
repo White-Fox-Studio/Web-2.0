@@ -1269,7 +1269,6 @@
         }
     };
 
-
     window.addToCart = function (cardId) {
         const prod = products.find(p => p.id === cardId);
         if (!prod) return;
@@ -1305,8 +1304,8 @@
                     if (selectedVariant) {
                         let variantName = '';
                         if (selectedVariant.size_label) variantName += `${selectedVariant.size_label} `;
-                        if (selectedVariant.pose) variantName += `${selectedVariant.pose} `;
-                        if (selectedVariant.color) variantName += `${selectedVariant.color}`;
+                        // if (selectedVariant.pose) variantName += `${selectedVariant.pose} `;
+                        // if (selectedVariant.color) variantName += `${selectedVariant.color}`;
                         if (!variantName) variantName = selectedVariant.sku;
 
                         itemToAdd = {
@@ -1325,8 +1324,8 @@
                     if (firstVariant) {
                         let variantName = '';
                         if (firstVariant.size_label) variantName += `${firstVariant.size_label} `;
-                        if (firstVariant.pose) variantName += `${firstVariant.pose} `;
-                        if (firstVariant.color) variantName += `${firstVariant.color}`;
+                        // if (firstVariant.pose) variantName += `${firstVariant.pose} `;
+                        // if (firstVariant.color) variantName += `${firstVariant.color}`;
                         if (!variantName) variantName = firstVariant.sku;
 
                         itemToAdd = {
@@ -1439,6 +1438,7 @@
         if (totalAmountEl) totalAmountEl.innerHTML = formattedPrice;
         if (mobileCartTotalEl) mobileCartTotalEl.textContent = finalPrice.toLocaleString() + ' THB';
 
+        // TODO - а сразу их в стили записать религия не позволяет??
         // Стили для фиксации нижней части корзины
         const fixedBottomStyles = `
         <style id="cart-fixed-styles">
@@ -1490,13 +1490,13 @@
             document.head.insertAdjacentHTML('beforeend', fixedBottomStyles);
         }
 
+        // TODO - нужно вынести рендеринг товара в отдельную функцию, и рендерить только этот товар когда меняется колличество
         // Отрисовываем список товаров
         const cartHtml = cart.length === 0 ?
             '<div style="text-align: center; padding: 40px 20px; color: #999; font-size: 1rem;">🛒 Cart is empty</div>' :
             cart.map(item => {
                 const name = currentLang === 'th' ? item.name_th : item.name_en
                 const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
-                console.log(name, item);
 
                 const isPackageLItem = item.isPackage && (item.isPackageL === true ||
                     (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
@@ -1505,6 +1505,21 @@
                 const packageLBadge = isPackageLItem ?
                     '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
 
+                let discountedPrice = 0;
+                let priceBlock = '';
+                if (hasPackageL && !isPackageLItem) {
+                    const discountPercent = 10;
+                    const discountPrice = item.price - Math.round((item.price * discountPercent) / 100);
+                    const total = item.price * item.quantity;
+                    const discountTotal = total - Math.round((total * discountPercent) / 100);
+                    priceBlock = `<div>
+                        <span style="text-decoration: line-through; color: #999; font-size: 0.8rem;">${(item.price * item.quantity).toLocaleString()} THB</span>
+                        <span style="color: #007883; font-weight: 700; font-size: 0.95rem;">${discountTotal.toLocaleString()} THB</span>
+                    </div>`
+                } else {
+                    priceBlock = `<div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB</div>`
+                }
+
                 return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #e9eef2; gap: 12px;">
                 <div style="flex: 1;">
                     <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
@@ -1512,7 +1527,7 @@
                         <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(name)}</span>
                         ${packageLBadge}
                     </div>
-                    <div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB (${item.price.toLocaleString()} × ${item.quantity})</div>
+                    ${priceBlock}
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 6px 14px; border-radius: 40px;">
                     <button onclick="updateQuantity('${safeItemId}', -1)"
