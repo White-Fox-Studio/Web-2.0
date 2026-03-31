@@ -76,7 +76,7 @@
 <div id="toastMessage" class="toast-message"></div>
 
 <!-- Top bar -->
-<div class="top-bar">
+<div class="top-bar" id="topBar">
     <div class="logo-area">
         <img class="logo-img" src="https://i.postimg.cc/Rh1kRjsQ/LOGOTIP-WF-new.png" alt="logo" width="40" height="40"
              loading="eager">
@@ -186,11 +186,6 @@
 
         <!-- Categories will be dynamically inserted here -->
         <div id="categories-container"></div>
-
-        <!-- OK Button -->
-        <div class="bottom-ok">
-            <button class="send-crm-btn" id="bottomSendBtn" onclick="checkFormAndCheckout()">OK</button>
-        </div>
     </div>
 
     <!-- Desktop cart -->
@@ -234,6 +229,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 
 <script>
+    // ===================== КОНСТАНТЫ ==============================
+    const topBar = document.getElementById('topBar');
+    const pcNav = document.getElementById('pcCategoryNav');
+    const mobileNav = document.getElementById('mobileCategoryNav');
+    let isMobile = window.innerWidth <= 900;
+    let scrolled = false;
     // ===================== КЭШИРОВАНИЕ ДАННЫХ =====================
     const CACHE_KEYS = {
         CONFIG: 'supabase_config_cache',
@@ -610,9 +611,6 @@
 
     // ===================== ФУНКЦИИ НАВИГАЦИИ =====================
     function resetNavigation() {
-        const pcNav = document.getElementById('pcCategoryNav');
-        const mobileNav = document.getElementById('mobileCategoryNav');
-
         if (pcNav) {
             while (pcNav.firstChild) {
                 pcNav.removeChild(pcNav.firstChild);
@@ -629,9 +627,6 @@
     }
 
     function updateCategoryNav() {
-        const pcNav = document.getElementById('pcCategoryNav');
-        const mobileNav = document.getElementById('mobileCategoryNav');
-
         if (!pcNav || !mobileNav) return;
 
         resetNavigation();
@@ -1213,7 +1208,6 @@
         });
 
         if (found && firstMatch) {
-            const isMobile = window.innerWidth <= 900;
 
             const rect = firstMatch.getBoundingClientRect();
             const nav = isMobile ? document.getElementById('mobileCategoryNav') : document.getElementById('pcCategoryNav');
@@ -1653,7 +1647,6 @@
     // ===================== ФУНКЦИЯ ПРОВЕРКИ ВСЕХ ПОЛЕЙ АНКЕТЫ =====================
     // ===================== ФУНКЦИЯ ПРОВЕРКИ ВСЕХ ПОЛЕЙ АНКЕТЫ (С ПЕРЕКИДЫВАНИЕМ НАВЕРХ) =====================
     window.checkFormAndCheckout = function () {
-        const isMobile = window.innerWidth <= 900;
 
         console.log('=== CHECK FORM START ===');
         console.log('Is mobile:', isMobile);
@@ -2100,7 +2093,6 @@
 
     // ===================== УТИЛИТЫ =====================
     function resetStickyCartTop() {
-        const isMobile = window.innerWidth <= 900;
         if (isMobile) {return}
         const cartPanel = document.querySelector('.cart-panel');
 
@@ -2110,6 +2102,7 @@
 
         cartPanel.style.top = topOffset + 'px';
     }
+
     function showToast(msg, type = 'success') {
         const toast = document.getElementById('toastMessage');
         if (!toast) return;
@@ -2180,7 +2173,6 @@
 
     // ===================== ОГРАНИЧЕНИЯ ПРИ ВВОДЕ =====================
     function setupInputRestrictions() {
-        const isMobile = window.innerWidth <= 900;
 
         // Текстовые поля - только английские буквы
         const textFields = [
@@ -2267,7 +2259,6 @@
     }
 
     function addFormHint() {
-        const isMobile = window.innerWidth <= 900;
 
         // Находим форму
         const formContainer = isMobile ? document.querySelector('.mobile-form') : document.querySelector('.desktop-form');
@@ -2303,7 +2294,6 @@
 
     // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
     window.sendToCRM = async function () {
-        const isMobile = window.innerWidth <= 900;
 
         // Получаем значения полей с отладкой
         const clientName = isMobile ?
@@ -2456,7 +2446,6 @@
         console.log('All validations passed, sending order...');
         statusDiv.className = 'status-message';
         statusDiv.textContent = 'Sending...';
-        document.getElementById('bottomSendBtn').disabled = true;
 
         // Формируем данные для отправки
         const items = cart.map(item => ({
@@ -2565,8 +2554,6 @@
             statusDiv.textContent = 'Error sending order: ' + (error.message || 'Unknown error');
             showToast('Failed to send order: ' + (error.message || 'Unknown error'), 'error');
         } finally {
-            document.getElementById('bottomSendBtn').disabled = false;
-
             // Скрываем статус через 5 секунд
             setTimeout(() => {
                 statusDiv.style.display = 'none';
@@ -2621,6 +2608,23 @@
     window.addEventListener('resize', function() {
         resetStickyCartTop();
     });
+
+    window.addEventListener('scroll', function() {
+        if (!scrolled && window.scrollY > 0) {
+            scrolled = true;
+            setTimeout(()=>{
+                topBar.classList.add('scrolled');
+                mobileNav.classList.add('scrolled');
+            }, 1)
+        }
+        if (scrolled && window.scrollY <= 0) {
+            scrolled = false;
+            setTimeout(()=>{
+                topBar.classList.remove('scrolled');
+                mobileNav.classList.remove('scrolled');
+            }, 1)
+        }
+    })
 
     // Оптимизация скролла
     let scrollTimeout;
@@ -3705,7 +3709,7 @@
         .mobile-category-nav {
             display: flex !important;
             position: sticky !important;
-            top: 97px !important;
+            top: 97px;
             z-index: 999 !important;
             background: rgba(136, 221, 222, 0.95) !important;
             backdrop-filter: blur(5px) !important;
@@ -3724,6 +3728,9 @@
             box-sizing: border-box !important;
             min-height: 52px !important;
             align-items: stretch !important;
+        }
+        .mobile-category-nav.scrolled {
+            top: 58px;
         }
 
         .mobile-category-nav .cat-link {
@@ -3788,13 +3795,26 @@
         /* Топ-бар */
         .top-bar {
             position: sticky !important;
-            padding: 0.5rem 1rem !important;
-            flex-direction: column !important;
-            gap: 0.5rem !important;
+            padding: 0.5rem 1rem;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .top-bar.scrolled {
+            flex-direction: row;
+            gap: 1rem;
+        }
+
+        .top-bar.scrolled .logo-text {
+            display: none;
         }
 
         .logo-area {
-            width: 100% !important;
+            width: 100%;
+        }
+
+        .top-bar.scrolled .logo-area {
+            width: auto;
         }
 
         .right-actions {
