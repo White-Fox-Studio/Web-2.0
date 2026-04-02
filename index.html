@@ -194,12 +194,20 @@
             <span>Shopping Cart</span>
             <span class="cart-count" id="cart-count">0</span>
         </div>
-        <div id="cart-items-list" class="cart-items">
+        <div id="cart-items-list" class="cart-items-scroll">
             <div class="empty-cart">Cart is empty</div>
         </div>
-        <div class="cart-total">
-            <span>Total</span>
-            <span id="cart-total-price">0 THB</span>
+        <div class="cart-bottom-fixed">
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="cart-total-price">0 THB</span>
+            </div>
+            <div style="padding: 12px 0 8px 0;">
+                <button onclick="checkFormAndCheckout()"
+                        style="width: 100%; background: var(--accent-primary); color: white; border: none; padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,120,131,0.3);">
+                    OK - Complete Order <span id="cart-button-price">(0 THB)</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -214,10 +222,20 @@
         <span style="font-weight:700; font-size:1.3rem;">Shopping Cart</span>
         <button class="close-cart" onclick="closeMobileCart()">✕</button>
     </div>
-    <div id="mobile-cart-items" class="cart-items"></div>
-    <div class="cart-total">
-        <span>Total</span>
-        <span id="mobile-cart-total-price"></span>
+    <div id="mobile-cart-items" class="mobile-cart-items-scroll"></div>
+    <div class="mobile-cart-bottom-fixed">
+        <div style="padding: 12px 0 8px 0;">
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="mobile-cart-total-price"></span>
+            </div>
+            <div style="padding: 12px 0 8px 0;">
+                <button onclick="checkFormAndCheckout()"
+                        style="width: 100%; background: var(--accent-primary); color: white; border: none; padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,120,131,0.3);">
+                    OK - Complete Order <span id="mobile-button-price">(0 THB)</span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -256,6 +274,7 @@
     let categories = [];
     let products = [];
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    console.log(cart);
     let currentLang = 'th';
 
     // ===================== ФУНКЦИИ КЭШИРОВАНИЯ =====================
@@ -1377,6 +1396,91 @@
         showToast(`Added to cart: ${itemToAdd.name}`);
     };
 
+    function getCardItemTemplate(item, hasPackageL) {
+        const name = currentLang === 'th' ? item.name_th : item.name_en
+        const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
+
+        const isPackageLItem = item.isPackage && (item.isPackageL === true ||
+            (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
+            (name && name.toLowerCase().includes('package l')));
+
+        const packageLBadge = isPackageLItem ?
+            '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
+
+        let priceBlock = '';
+        if (hasPackageL && !isPackageLItem) {
+            const discountPercent = 10;
+            const total = item.price * item.quantity;
+            const discountTotal = total - Math.round((total * discountPercent) / 100);
+            priceBlock = `<div>
+                        <span style="text-decoration: line-through; color: #999; font-size: 0.8rem;">${(item.price * item.quantity).toLocaleString()} THB</span>
+                        <span style="color: #007883; font-weight: 700; font-size: 0.95rem;">${discountTotal.toLocaleString()} THB</span>
+                    </div>`
+        } else {
+            priceBlock = `<div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB</div>`
+        }
+
+        return `<div style="flex: 1;">
+                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
+                        <span style="background: #d9f0f2; color: #007883; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${escapeHtml(item.sku)}</span>
+                        <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(name)}</span>
+                        ${packageLBadge}
+                    </div>
+                    ${priceBlock}
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 6px 14px; border-radius: 40px;">
+                    <button onclick="updateQuantity('${safeItemId}', -1)"
+                            style="background: white; border: 1px solid #007883; color: #007883; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;">−</button>
+                    <span style="min-width: 28px; text-align: center; font-weight: 700; font-size: 1rem;">${item.quantity}</span>
+                    <button onclick="updateQuantity('${safeItemId}', 1)"
+                            style="background: white; border: 1px solid #007883; color: #007883; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;">+</button>
+                </div>`;
+    }
+
+    function renderCardItem(item, hasPackageL) {
+        const template = getCardItemTemplate(item, hasPackageL);
+
+        function getWrap() {
+            const element = document.createElement('div');
+            element.style.display = 'flex';
+            element.style.justifyContent = 'space-between';
+            element.style.alignItems = 'center';
+            element.style.padding = '14px 0';
+            element.style.borderBottom = '1px solid #e9eef2';
+            element.style.gap = '12px;';
+
+            return element;
+        }
+
+        // десктопная корзина
+        if (item.cartNode && item.cartNode.isConnected) {
+            item.cartNode.innerHTML = template;
+        } else {
+            const node = getWrap();
+            node.innerHTML = template
+            const cartScrollContainer = document.getElementById('cart-items-list');
+
+            cartScrollContainer.appendChild(node);
+            item.cartNode = node;
+        }
+
+        // мобильная корзина
+        if (item.mobileNode && item.mobileNode.isConnected) {
+            item.mobileNode.innerHTML = template;
+        } else {
+            const node = getWrap();
+            node.innerHTML = template
+            const mobileScrollContainer = document.getElementById('mobile-cart-items');
+
+            mobileScrollContainer.appendChild(node);
+            item.mobileNode = node;
+        }
+    }
+
+    function renderCardTotal() {
+
+    }
+
     function updateCartUI() {
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -1490,154 +1594,38 @@
             document.head.insertAdjacentHTML('beforeend', fixedBottomStyles);
         }
 
-        // TODO - нужно вынести рендеринг товара в отдельную функцию, и рендерить только этот товар когда меняется колличество
-        // Отрисовываем список товаров
-        const cartHtml = cart.length === 0 ?
-            '<div style="text-align: center; padding: 40px 20px; color: #999; font-size: 1rem;">🛒 Cart is empty</div>' :
-            cart.map(item => {
-                const name = currentLang === 'th' ? item.name_th : item.name_en
-                const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
-
-                const isPackageLItem = item.isPackage && (item.isPackageL === true ||
-                    (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
-                    (name && name.toLowerCase().includes('package l')));
-
-                const packageLBadge = isPackageLItem ?
-                    '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
-
-                let discountedPrice = 0;
-                let priceBlock = '';
-                if (hasPackageL && !isPackageLItem) {
-                    const discountPercent = 10;
-                    const discountPrice = item.price - Math.round((item.price * discountPercent) / 100);
-                    const total = item.price * item.quantity;
-                    const discountTotal = total - Math.round((total * discountPercent) / 100);
-                    priceBlock = `<div>
-                        <span style="text-decoration: line-through; color: #999; font-size: 0.8rem;">${(item.price * item.quantity).toLocaleString()} THB</span>
-                        <span style="color: #007883; font-weight: 700; font-size: 0.95rem;">${discountTotal.toLocaleString()} THB</span>
-                    </div>`
-                } else {
-                    priceBlock = `<div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB</div>`
-                }
-
-                return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #e9eef2; gap: 12px;">
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
-                        <span style="background: #d9f0f2; color: #007883; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${escapeHtml(item.sku)}</span>
-                        <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(name)}</span>
-                        ${packageLBadge}
-                    </div>
-                    ${priceBlock}
-                </div>
-                <div style="display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 6px 14px; border-radius: 40px;">
-                    <button onclick="updateQuantity('${safeItemId}', -1)"
-                            style="background: white; border: 1px solid #007883; color: #007883; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;">−</button>
-                    <span style="min-width: 28px; text-align: center; font-weight: 700; font-size: 1rem;">${item.quantity}</span>
-                    <button onclick="updateQuantity('${safeItemId}', 1)"
-                            style="background: white; border: 1px solid #007883; color: #007883; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;">+</button>
-                </div>
-            </div>`;
-            }).join('');
-
-        // Кнопка OK (всегда видна внизу)
-        const checkoutButtonHtml = `
-        <div style="padding: 12px 0 8px 0;">
-            <button onclick="checkFormAndCheckout()"
-                    style="width: 100%; background: var(--accent-primary); color: white; border: none; padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,120,131,0.3);">
-                 OK - Complete Order (${finalPrice.toLocaleString()} THB)
-            </button>
-        </div>
-    `;
+        console.log('render cart', cart, finalPrice)
+        cart.forEach(item => {
+            console.log('item.template',item.template);
+            renderCardItem(item, hasPackageL);
+        })
 
         // Обновляем десктопную корзину с фиксированной нижней частью
         const cartPanel = document.querySelector('.cart-panel');
+        console.log('cart', cartPanel)
         if (cartPanel) {
-            // Сохраняем оригинальную структуру
-            const cartHeader = cartPanel.querySelector('.cart-header');
-            const cartTotal = cartPanel.querySelector('.cart-total');
+            console.log('render cart')
 
-            if (cartHeader && cartTotal) {
-                // Создаем новую структуру
-                const scrollContainer = document.createElement('div');
-                scrollContainer.className = 'cart-items-scroll';
-                scrollContainer.id = 'cart-items-list';
-                scrollContainer.innerHTML = cartHtml;
+            const totalSpan = document.getElementById('cart-total-price');
+            totalSpan.innerHTML = formattedPrice;
 
-                const bottomContainer = document.createElement('div');
-                bottomContainer.className = 'cart-bottom-fixed';
-
-                // Клонируем блок с общей суммой
-                const newCartTotal = cartTotal.cloneNode(true);
-                const totalSpan = newCartTotal.querySelector('#cart-total-price');
-                if (totalSpan) totalSpan.innerHTML = formattedPrice;
-
-                bottomContainer.appendChild(newCartTotal);
-                bottomContainer.insertAdjacentHTML('beforeend', checkoutButtonHtml);
-
-                // Очищаем и перестраиваем
-                cartPanel.innerHTML = '';
-                cartPanel.appendChild(cartHeader);
-                cartPanel.appendChild(scrollContainer);
-                cartPanel.appendChild(bottomContainer);
-            } else {
-                // fallback
-                const cartItemsList = document.getElementById('cart-items-list');
-                if (cartItemsList) cartItemsList.innerHTML = cartHtml;
-                const existingBtn = cartPanel.querySelector('.cart-ok-btn');
-                if (existingBtn) existingBtn.remove();
-                if (cart.length > 0) {
-                    const btnDiv = document.createElement('div');
-                    btnDiv.className = 'cart-ok-btn';
-                    btnDiv.style.marginTop = '16px';
-                    btnDiv.style.paddingTop = '16px';
-                    btnDiv.style.borderTop = '2px solid var(--accent-primary)';
-                    btnDiv.innerHTML = checkoutButtonHtml;
-                    cartPanel.appendChild(btnDiv);
-                }
-            }
+            const okBtnSpan = document.getElementById('cart-button-price');
+            console.log(okBtnSpan);
+            okBtnSpan.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
         }
 
         // Обновляем мобильную корзину с фиксированной нижней частью
         const mobileCartPanel = document.getElementById('mobileCart');
+        console.log('mobile cart', mobileCartPanel)
         if (mobileCartPanel) {
-            const mobileCartHeader = mobileCartPanel.querySelector('.mobile-cart-header');
-            const mobileCartTotal = mobileCartPanel.querySelector('.cart-total');
+            console.log('render mobile cart')
 
-            if (mobileCartHeader && mobileCartTotal) {
-                const scrollContainer = document.createElement('div');
-                scrollContainer.className = 'mobile-cart-items-scroll';
-                scrollContainer.id = 'mobile-cart-items';
-                scrollContainer.innerHTML = cartHtml;
+            const mobileTotalSpan = document.getElementById('mobile-cart-total-price');
+            mobileTotalSpan.innerHTML = formattedPrice;
 
-                const bottomContainer = document.createElement('div');
-                bottomContainer.className = 'mobile-cart-bottom-fixed';
-
-                const newMobileTotal = mobileCartTotal.cloneNode(true);
-                const mobileTotalSpan = newMobileTotal.querySelector('#mobile-cart-total-price');
-                if (mobileTotalSpan) mobileTotalSpan.innerHTML = formattedPrice;
-
-                bottomContainer.appendChild(newMobileTotal);
-                bottomContainer.insertAdjacentHTML('beforeend', checkoutButtonHtml);
-
-                mobileCartPanel.innerHTML = '';
-                mobileCartPanel.appendChild(mobileCartHeader);
-                mobileCartPanel.appendChild(scrollContainer);
-                mobileCartPanel.appendChild(bottomContainer);
-            } else {
-                const mobileCartItems = document.getElementById('mobile-cart-items');
-                if (mobileCartItems) mobileCartItems.innerHTML = cartHtml;
-                const existingBtn = document.getElementById('mobile-cart-ok-btn');
-                if (existingBtn) existingBtn.remove();
-                if (cart.length > 0) {
-                    const btnDiv = document.createElement('div');
-                    btnDiv.id = 'mobile-cart-ok-btn';
-                    btnDiv.style.marginTop = '16px';
-                    btnDiv.style.paddingTop = '16px';
-                    btnDiv.style.borderTop = '2px solid var(--accent-primary)';
-                    btnDiv.innerHTML = checkoutButtonHtml;
-                    mobileCartPanel.appendChild(btnDiv);
-                }
-            }
+            const okBtnSpan = document.getElementById('mobile-button-price');
+            console.log(okBtnSpan);
+            okBtnSpan.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
         }
 
         // Обновляем информацию о скидке
@@ -2619,6 +2607,8 @@
         setupInputRestrictions(); // Добавляем ограничения при вводе
         addFormHint(); // Добавляем подсказку
         resetStickyCartTop();
+        // TODO временно
+        updateCartUI();
     });
 
     // Добавляем кэширование изображений
