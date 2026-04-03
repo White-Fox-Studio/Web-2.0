@@ -194,12 +194,29 @@
             <span>Shopping Cart</span>
             <span class="cart-count" id="cart-count">0</span>
         </div>
-        <div id="cart-items-list" class="cart-items">
-            <div class="empty-cart">Cart is empty</div>
+        <div
+                id="cart-discount-banner"
+                class="cart-discount-info-inline"
+                style="display:none;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1rem;">🎁</span>
+                <span style="font-weight: 600; color: #e67e22; font-size: 0.85rem;">Package L: 10% OFF on regular items (saved <span id="cart-discount-banner-price"></span> THB)</span>
+            </div>
         </div>
-        <div class="cart-total">
-            <span>Total</span>
-            <span id="cart-total-price">0 THB</span>
+        <div id="cart-items-list" class="cart-items-scroll">
+            <div class="empty-cart" id="cart-empty">Cart is empty</div>
+        </div>
+        <div class="cart-bottom-fixed">
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="cart-total-price">0 THB</span>
+            </div>
+            <div style="padding: 12px 0 8px 0;">
+                <button onclick="checkFormAndCheckout()"
+                        style="width: 100%; background: var(--accent-primary); color: white; border: none; padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,120,131,0.3);">
+                    OK - Complete Order <span id="cart-button-price">(0 THB)</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -214,10 +231,31 @@
         <span style="font-weight:700; font-size:1.3rem;">Shopping Cart</span>
         <button class="close-cart" onclick="closeMobileCart()">✕</button>
     </div>
-    <div id="mobile-cart-items" class="cart-items"></div>
-    <div class="cart-total">
-        <span>Total</span>
-        <span id="mobile-cart-total-price"></span>
+    <div
+            id="mobile-cart-discount-banner"
+            class="cart-discount-info-inline"
+            style=" display:none;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1rem;">🎁</span>
+            <span style="font-weight: 600; color: #e67e22; font-size: 0.85rem;">Package L: 10% OFF on regular items (saved <span id="mobile-discount-banner-price"></span> THB)</span>
+        </div>
+    </div>
+    <div id="mobile-cart-items" class="mobile-cart-items-scroll">
+        <div class="empty-cart" id="mobile-cart-empty">Cart is empty</div>
+    </div>
+    <div class="mobile-cart-bottom-fixed">
+        <div style="padding: 12px 0 8px 0;">
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="mobile-cart-total-price"></span>
+            </div>
+            <div style="padding: 12px 0 8px 0;">
+                <button onclick="checkFormAndCheckout()"
+                        style="width: 100%; background: var(--accent-primary); color: white; border: none; padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,120,131,0.3);">
+                    OK - Complete Order <span id="mobile-button-price">(0 THB)</span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -270,6 +308,7 @@
     let categories = [];
     let products = [];
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    console.log(cart);
     let currentLang = 'th';
 
     // ===================== LOAD DATA  ============================
@@ -1129,8 +1168,10 @@
         const newQuantity = item.quantity + delta;
 
         if (newQuantity <= 0) {
+            item.cartNode.remove()
+            item.mobileNode.remove()
             cart.splice(itemIndex, 1);
-            showToast(`Removed: ${item.name}`, 'info');
+            showToast(`Removed: ${currentLang === 'th' ? item.name_th : item.name_en}`, 'info');
         } else {
             item.quantity = newQuantity;
         }
@@ -1249,13 +1290,12 @@
 
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartUI();
-        showToast(`Added to cart: ${itemToAdd.name}`);
+        const name = currentLang === 'th' ? itemToAdd.name_th : itemToAdd.name_en;
+        showToast(`Added to cart: ${name}`);
     };
 
-    function updateCartUI() {
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-        // Расчет скидки
+    function getCartData() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0).toString();
         let productsTotal = 0;
         let packagesTotal = 0;
         let hasPackageL = false;
@@ -1292,111 +1332,43 @@
             finalPrice = productsTotal + packagesTotal - discountAmount;
         }
 
-        // Обновляем счетчики
-        const totalItemsEl = document.getElementById('total-items');
-        const cartCountEl = document.getElementById('cart-count');
-        const mobileCartCountEl = document.getElementById('mobile-cart-count');
-        const mobileCartTotalEl = document.getElementById('mobile-cart-total');
-        const cartTotalPriceEl = document.getElementById('cart-total-price');
-        const mobileCartTotalPriceEl = document.getElementById('mobile-cart-total-price');
-        const totalAmountEl = document.getElementById('total-amount');
-
-        if (totalItemsEl) totalItemsEl.textContent = totalItems;
-        if (cartCountEl) cartCountEl.textContent = totalItems;
-        if (mobileCartCountEl) mobileCartCountEl.textContent = totalItems;
-
         const hasDiscount = discountAmount > 0;
         const formattedPrice = formatPriceWithDiscount(finalPrice, subtotal, discountAmount, discountPercent, hasDiscount);
 
-        if (cartTotalPriceEl) cartTotalPriceEl.innerHTML = formattedPrice;
-        if (mobileCartTotalPriceEl) mobileCartTotalPriceEl.innerHTML = formattedPrice;
-        if (totalAmountEl) totalAmountEl.innerHTML = formattedPrice;
-        if (mobileCartTotalEl) mobileCartTotalEl.textContent = finalPrice.toLocaleString() + ' THB';
-
-        // TODO - а сразу их в стили записать религия не позволяет??
-        // Стили для фиксации нижней части корзины
-        const fixedBottomStyles = `
-        <style id="cart-fixed-styles">
-            .cart-panel {
-                display: flex;
-                flex-direction: column;
-                height: calc(100vh - 180px);
-                max-height: calc(100vh - 180px);
-                overflow: hidden;
-            }
-            .cart-items-scroll {
-                flex: 1;
-                overflow-y: auto;
-                margin-bottom: 0;
-                padding-right: 5px;
-            }
-            .cart-bottom-fixed {
-                flex-shrink: 0;
-                background: white;
-                border-top: 2px solid var(--accent-primary);
-                margin-top: 12px;
-                padding-top: 12px;
-            }
-            .mobile-cart-panel {
-                display: flex;
-                flex-direction: column;
-                height: 85vh;
-                max-height: 85vh;
-                overflow: hidden;
-            }
-            .mobile-cart-items-scroll {
-                flex: 1;
-                overflow-y: auto;
-                margin-bottom: 0;
-                padding-right: 5px;
-            }
-            .mobile-cart-bottom-fixed {
-                flex-shrink: 0;
-                background: white;
-                border-top: 2px solid var(--accent-primary);
-                margin-top: 12px;
-                padding-top: 12px;
-            }
-        </style>
-    `;
-
-        // Добавляем стили если их нет
-        if (!document.getElementById('cart-fixed-styles')) {
-            document.head.insertAdjacentHTML('beforeend', fixedBottomStyles);
+        return {
+            totalItems,
+            hasPackageL,
+            formattedPrice,
+            finalPrice,
+            discountAmount
         }
+    }
 
-        // TODO - нужно вынести рендеринг товара в отдельную функцию, и рендерить только этот товар когда меняется колличество
-        // Отрисовываем список товаров
-        const cartHtml = cart.length === 0 ?
-            '<div style="text-align: center; padding: 40px 20px; color: #999; font-size: 1rem;">🛒 Cart is empty</div>' :
-            cart.map(item => {
-                const name = currentLang === 'th' ? item.name_th : item.name_en
-                const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
+    function getCardItemTemplate(item, hasPackageL) {
+        const name = currentLang === 'th' ? item.name_th : item.name_en
+        const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
 
-                const isPackageLItem = item.isPackage && (item.isPackageL === true ||
-                    (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
-                    (name && name.toLowerCase().includes('package l')));
+        const isPackageLItem = item.isPackage && (item.isPackageL === true ||
+            (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
+            (name && name.toLowerCase().includes('package l')));
 
-                const packageLBadge = isPackageLItem ?
-                    '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
+        const packageLBadge = isPackageLItem ?
+            '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
 
-                let discountedPrice = 0;
-                let priceBlock = '';
-                if (hasPackageL && !isPackageLItem) {
-                    const discountPercent = 10;
-                    const discountPrice = item.price - Math.round((item.price * discountPercent) / 100);
-                    const total = item.price * item.quantity;
-                    const discountTotal = total - Math.round((total * discountPercent) / 100);
-                    priceBlock = `<div>
+        let priceBlock = '';
+        if (hasPackageL && !isPackageLItem) {
+            const discountPercent = 10;
+            const total = item.price * item.quantity;
+            const discountTotal = total - Math.round((total * discountPercent) / 100);
+            priceBlock = `<div>
                         <span style="text-decoration: line-through; color: #999; font-size: 0.8rem;">${(item.price * item.quantity).toLocaleString()} THB</span>
                         <span style="color: #007883; font-weight: 700; font-size: 0.95rem;">${discountTotal.toLocaleString()} THB</span>
                     </div>`
-                } else {
-                    priceBlock = `<div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB</div>`
-                }
+        } else {
+            priceBlock = `<div style="color: #007883; font-weight: 700; font-size: 0.95rem;">${(item.price * item.quantity).toLocaleString()} THB</div>`
+        }
 
-                return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #e9eef2; gap: 12px;">
-                <div style="flex: 1;">
+        return `<div style="flex: 1;">
                     <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
                         <span style="background: #d9f0f2; color: #007883; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${escapeHtml(item.sku)}</span>
                         <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(name)}</span>
@@ -1410,135 +1382,118 @@
                     <span style="min-width: 28px; text-align: center; font-weight: 700; font-size: 1rem;">${item.quantity}</span>
                     <button onclick="updateQuantity('${safeItemId}', 1)"
                             style="background: white; border: 1px solid #007883; color: #007883; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;">+</button>
-                </div>
-            </div>`;
-            }).join('');
+                </div>`;
+    }
 
-        // Кнопка OK (всегда видна внизу)
-        const checkoutButtonHtml = `
-        <div style="padding: 12px 0 8px 0;">
-            <button onclick="checkFormAndCheckout()"
-                    style="width: 100%; background: var(--accent-primary); color: white; border: none; padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,120,131,0.3);">
-                 OK - Complete Order (${finalPrice.toLocaleString()} THB)
-            </button>
-        </div>
-    `;
+    function renderCardItem(item) {
+        const {hasPackageL} = getCartData()
+        const template = getCardItemTemplate(item, hasPackageL);
 
-        // Обновляем десктопную корзину с фиксированной нижней частью
-        const cartPanel = document.querySelector('.cart-panel');
-        if (cartPanel) {
-            // Сохраняем оригинальную структуру
-            const cartHeader = cartPanel.querySelector('.cart-header');
-            const cartTotal = cartPanel.querySelector('.cart-total');
+        function getWrap() {
+            const element = document.createElement('div');
+            element.style.display = 'flex';
+            element.style.justifyContent = 'space-between';
+            element.style.alignItems = 'center';
+            element.style.padding = '14px 0';
+            element.style.borderBottom = '1px solid #e9eef2';
+            element.style.gap = '12px;';
 
-            if (cartHeader && cartTotal) {
-                // Создаем новую структуру
-                const scrollContainer = document.createElement('div');
-                scrollContainer.className = 'cart-items-scroll';
-                scrollContainer.id = 'cart-items-list';
-                scrollContainer.innerHTML = cartHtml;
-
-                const bottomContainer = document.createElement('div');
-                bottomContainer.className = 'cart-bottom-fixed';
-
-                // Клонируем блок с общей суммой
-                const newCartTotal = cartTotal.cloneNode(true);
-                const totalSpan = newCartTotal.querySelector('#cart-total-price');
-                if (totalSpan) totalSpan.innerHTML = formattedPrice;
-
-                bottomContainer.appendChild(newCartTotal);
-                bottomContainer.insertAdjacentHTML('beforeend', checkoutButtonHtml);
-
-                // Очищаем и перестраиваем
-                cartPanel.innerHTML = '';
-                cartPanel.appendChild(cartHeader);
-                cartPanel.appendChild(scrollContainer);
-                cartPanel.appendChild(bottomContainer);
-            } else {
-                // fallback
-                const cartItemsList = document.getElementById('cart-items-list');
-                if (cartItemsList) cartItemsList.innerHTML = cartHtml;
-                const existingBtn = cartPanel.querySelector('.cart-ok-btn');
-                if (existingBtn) existingBtn.remove();
-                if (cart.length > 0) {
-                    const btnDiv = document.createElement('div');
-                    btnDiv.className = 'cart-ok-btn';
-                    btnDiv.style.marginTop = '16px';
-                    btnDiv.style.paddingTop = '16px';
-                    btnDiv.style.borderTop = '2px solid var(--accent-primary)';
-                    btnDiv.innerHTML = checkoutButtonHtml;
-                    cartPanel.appendChild(btnDiv);
-                }
-            }
+            return element;
         }
 
-        // Обновляем мобильную корзину с фиксированной нижней частью
-        const mobileCartPanel = document.getElementById('mobileCart');
-        if (mobileCartPanel) {
-            const mobileCartHeader = mobileCartPanel.querySelector('.mobile-cart-header');
-            const mobileCartTotal = mobileCartPanel.querySelector('.cart-total');
+        // десктопная корзина
+        if (item.cartNode && item.cartNode.isConnected) {
+            item.cartNode.innerHTML = template;
+        } else {
+            const node = getWrap();
+            node.innerHTML = template
+            const cartScrollContainer = document.getElementById('cart-items-list');
 
-            if (mobileCartHeader && mobileCartTotal) {
-                const scrollContainer = document.createElement('div');
-                scrollContainer.className = 'mobile-cart-items-scroll';
-                scrollContainer.id = 'mobile-cart-items';
-                scrollContainer.innerHTML = cartHtml;
-
-                const bottomContainer = document.createElement('div');
-                bottomContainer.className = 'mobile-cart-bottom-fixed';
-
-                const newMobileTotal = mobileCartTotal.cloneNode(true);
-                const mobileTotalSpan = newMobileTotal.querySelector('#mobile-cart-total-price');
-                if (mobileTotalSpan) mobileTotalSpan.innerHTML = formattedPrice;
-
-                bottomContainer.appendChild(newMobileTotal);
-                bottomContainer.insertAdjacentHTML('beforeend', checkoutButtonHtml);
-
-                mobileCartPanel.innerHTML = '';
-                mobileCartPanel.appendChild(mobileCartHeader);
-                mobileCartPanel.appendChild(scrollContainer);
-                mobileCartPanel.appendChild(bottomContainer);
-            } else {
-                const mobileCartItems = document.getElementById('mobile-cart-items');
-                if (mobileCartItems) mobileCartItems.innerHTML = cartHtml;
-                const existingBtn = document.getElementById('mobile-cart-ok-btn');
-                if (existingBtn) existingBtn.remove();
-                if (cart.length > 0) {
-                    const btnDiv = document.createElement('div');
-                    btnDiv.id = 'mobile-cart-ok-btn';
-                    btnDiv.style.marginTop = '16px';
-                    btnDiv.style.paddingTop = '16px';
-                    btnDiv.style.borderTop = '2px solid var(--accent-primary)';
-                    btnDiv.innerHTML = checkoutButtonHtml;
-                    mobileCartPanel.appendChild(btnDiv);
-                }
-            }
+            cartScrollContainer.appendChild(node);
+            item.cartNode = node;
         }
 
-        // Обновляем информацию о скидке
-        const existingDiscountInfo = document.querySelectorAll('.cart-discount-info-inline');
-        existingDiscountInfo.forEach(el => el.remove());
+        // мобильная корзина
+        if (item.mobileNode && item.mobileNode.isConnected) {
+            item.mobileNode.innerHTML = template;
+        } else {
+            const node = getWrap();
+            node.innerHTML = template
+            const mobileScrollContainer = document.getElementById('mobile-cart-items');
 
-        if (hasPackageL && productsTotal > 0) {
-            const discountBanner = `
-            <div class="cart-discount-info-inline" style="background: #fff3e0; padding: 8px 12px; margin: 8px 0; border-radius: 12px; border-left: 3px solid #ff9800;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1rem;">🎁</span>
-                    <span style="font-weight: 600; color: #e67e22; font-size: 0.85rem;">Package L: 10% OFF on regular items (saved ${discountAmount} THB)</span>
-                </div>
-            </div>
-        `;
-
-            const cartHeader = document.querySelector('.cart-header');
-            if (cartHeader && !document.querySelector('.cart-header + .cart-discount-info-inline')) {
-                cartHeader.insertAdjacentHTML('afterend', discountBanner);
-            }
-
-            const mobileCartHeader = document.querySelector('.mobile-cart-header');
-            if (mobileCartHeader && !document.querySelector('.mobile-cart-header + .cart-discount-info-inline')) {
-                mobileCartHeader.insertAdjacentHTML('afterend', discountBanner);
-            }
+            mobileScrollContainer.appendChild(node);
+            item.mobileNode = node;
         }
+    }
+
+    function renderCartBannerPrice() {
+        const {hasPackageL, discountAmount} = getCartData()
+
+        const cartBanner = document.getElementById('cart-discount-banner');
+        const mobileCartBanner = document.getElementById("mobile-cart-discount-banner");
+        if (!hasPackageL) {
+            cartBanner.style.display = 'none';
+            mobileCartBanner.style.display = 'none';
+            return;
+        }
+        cartBanner.style.display = 'block';
+        mobileCartBanner.style.display = 'block';
+
+        const cartBannerPrice = document.getElementById("cart-discount-banner-price");
+        const mobileCartBannerPrice = document.getElementById("mobile-discount-banner-price");
+
+        cartBannerPrice.innerHTML = discountAmount.toLocaleString();
+        mobileCartBannerPrice.innerHTML = discountAmount.toLocaleString();
+
+    }
+
+    function renderCardTotalPrice() {
+        const {totalItems, finalPrice, formattedPrice} = getCartData()
+
+        // Обновляем счетчики
+        const totalItemsEl = document.getElementById('total-items');
+        const cartCountEl = document.getElementById('cart-count');
+        const mobileCartCountEl = document.getElementById('mobile-cart-count');
+        const mobileCartTotalEl = document.getElementById('mobile-cart-total');
+        const cartTotalPriceEl = document.getElementById('cart-total-price');
+        const mobileCartTotalPriceEl = document.getElementById('mobile-cart-total-price');
+        const totalAmountEl = document.getElementById('total-amount');
+
+        if (totalItemsEl) totalItemsEl.textContent = totalItems;
+        if (cartCountEl) cartCountEl.textContent = totalItems;
+        if (mobileCartCountEl) mobileCartCountEl.textContent = totalItems;
+
+        if (cartTotalPriceEl) cartTotalPriceEl.innerHTML = formattedPrice;
+        if (mobileCartTotalPriceEl) mobileCartTotalPriceEl.innerHTML = formattedPrice;
+        if (totalAmountEl) totalAmountEl.innerHTML = formattedPrice;
+        if (mobileCartTotalEl) mobileCartTotalEl.textContent = finalPrice.toLocaleString() + ' THB';
+
+        const okBtnSpan = document.getElementById('cart-button-price');
+        okBtnSpan.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
+
+        const okBtnSpanMobile = document.getElementById('mobile-button-price');
+        okBtnSpanMobile.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
+    }
+
+    function renderEmptyCardBlock() {
+        const emptyCardBlock = document.getElementById('cart-empty');
+        const mobileEmptyCardBlock = document.getElementById('mobile-cart-empty');
+        if (cart.length > 0) {
+            emptyCardBlock.style.display = 'none';
+            mobileEmptyCardBlock.style.display = 'none';
+        } else {
+            emptyCardBlock.style.display = 'block';
+            mobileEmptyCardBlock.style.display = 'block';
+        }
+    }
+
+    function updateCartUI() {
+        renderCardTotalPrice();
+        renderCartBannerPrice();
+        renderEmptyCardBlock();
+        cart.forEach(item => {
+            renderCardItem(item);
+        })
     }
 
     // ===================== ФУНКЦИЯ ПРОВЕРКИ ВСЕХ ПОЛЕЙ АНКЕТЫ =====================
@@ -2499,6 +2454,8 @@
         setupInputRestrictions(); // Добавляем ограничения при вводе
         addFormHint(); // Добавляем подсказку
         resetStickyCartTop();
+        // TODO временно
+        updateCartUI();
     });
 
     // Добавляем кэширование изображений
@@ -4151,6 +4108,56 @@
         font-size: 0.95rem;
         display: flex;
         justify-content: center;
+    }
+
+    /* Стили для фиксации нижней части корзины */
+    .cart-panel {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 180px);
+        max-height: calc(100vh - 180px);
+        overflow: hidden;
+    }
+    .cart-items-scroll {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-right: 5px;
+    }
+    .cart-bottom-fixed {
+        flex-shrink: 0;
+        background: white;
+        border-top: 2px solid var(--accent-primary);
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+    .mobile-cart-panel {
+        display: flex;
+        flex-direction: column;
+        height: 85vh;
+        max-height: 85vh;
+        overflow: hidden;
+    }
+    .mobile-cart-items-scroll {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-right: 5px;
+    }
+    .mobile-cart-bottom-fixed {
+        flex-shrink: 0;
+        background: white;
+        border-top: 2px solid var(--accent-primary);
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .cart-discount-info-inline {
+        background: #fff3e0;
+        padding: 8px 12px;
+        margin: 8px 0;
+        border-radius: 12px;
+        border-left: 3px solid #ff9800;
     }
 </style>
 </body>
