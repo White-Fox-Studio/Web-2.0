@@ -194,8 +194,17 @@
             <span>Shopping Cart</span>
             <span class="cart-count" id="cart-count">0</span>
         </div>
+        <div
+                id="cart-discount-banner"
+                class="cart-discount-info-inline"
+                style="display:none;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1rem;">🎁</span>
+                <span style="font-weight: 600; color: #e67e22; font-size: 0.85rem;">Package L: 10% OFF on regular items (saved <span id="cart-discount-banner-price"></span> THB)</span>
+            </div>
+        </div>
         <div id="cart-items-list" class="cart-items-scroll">
-            <div class="empty-cart">Cart is empty</div>
+            <div class="empty-cart" id="cart-empty">Cart is empty</div>
         </div>
         <div class="cart-bottom-fixed">
             <div class="cart-total">
@@ -222,7 +231,18 @@
         <span style="font-weight:700; font-size:1.3rem;">Shopping Cart</span>
         <button class="close-cart" onclick="closeMobileCart()">✕</button>
     </div>
-    <div id="mobile-cart-items" class="mobile-cart-items-scroll"></div>
+    <div
+            id="mobile-cart-discount-banner"
+            class="cart-discount-info-inline"
+            style=" display:none;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1rem;">🎁</span>
+            <span style="font-weight: 600; color: #e67e22; font-size: 0.85rem;">Package L: 10% OFF on regular items (saved <span id="mobile-discount-banner-price"></span> THB)</span>
+        </div>
+    </div>
+    <div id="mobile-cart-items" class="mobile-cart-items-scroll">
+        <div class="empty-cart" id="mobile-cart-empty">Cart is empty</div>
+    </div>
     <div class="mobile-cart-bottom-fixed">
         <div style="padding: 12px 0 8px 0;">
             <div class="cart-total">
@@ -1148,8 +1168,10 @@
         const newQuantity = item.quantity + delta;
 
         if (newQuantity <= 0) {
+            item.cartNode.remove()
+            item.mobileNode.remove()
             cart.splice(itemIndex, 1);
-            showToast(`Removed: ${item.name}`, 'info');
+            showToast(`Removed: ${currentLang === 'th' ? item.name_th : item.name_en}`, 'info');
         } else {
             item.quantity = newQuantity;
         }
@@ -1268,8 +1290,59 @@
 
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartUI();
-        showToast(`Added to cart: ${itemToAdd.name}`);
+        const name = currentLang === 'th' ? itemToAdd.name_th : itemToAdd.name_en;
+        showToast(`Added to cart: ${name}`);
     };
+
+    function getCartData() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0).toString();
+        let productsTotal = 0;
+        let packagesTotal = 0;
+        let hasPackageL = false;
+
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            if (item.isPackage) {
+                packagesTotal += itemTotal;
+                if (item.isPackageL === true) {
+                    hasPackageL = true;
+                } else {
+                    const skuLower = (item.sku || '').toLowerCase();
+                    const name = currentLang === 'th' ? item.name_th : item.name_en
+                    const nameLower = (name || '').toLowerCase();
+                    if (skuLower === 'package-l' || skuLower === 'l' ||
+                        nameLower.includes('package l')) {
+                        hasPackageL = true;
+                        item.isPackageL = true;
+                    }
+                }
+            } else {
+                productsTotal += itemTotal;
+            }
+        });
+
+        const subtotal = productsTotal + packagesTotal;
+        let finalPrice = subtotal;
+        let discountAmount = 0;
+        let discountPercent = 0;
+
+        if (hasPackageL && productsTotal > 0) {
+            discountPercent = 10;
+            discountAmount = Math.round((productsTotal * discountPercent) / 100);
+            finalPrice = productsTotal + packagesTotal - discountAmount;
+        }
+
+        const hasDiscount = discountAmount > 0;
+        const formattedPrice = formatPriceWithDiscount(finalPrice, subtotal, discountAmount, discountPercent, hasDiscount);
+
+        return {
+            totalItems,
+            hasPackageL,
+            formattedPrice,
+            finalPrice,
+            discountAmount
+        }
+    }
 
     function getCardItemTemplate(item, hasPackageL) {
         const name = currentLang === 'th' ? item.name_th : item.name_en
@@ -1312,7 +1385,8 @@
                 </div>`;
     }
 
-    function renderCardItem(item, hasPackageL) {
+    function renderCardItem(item) {
+        const {hasPackageL} = getCartData()
         const template = getCardItemTemplate(item, hasPackageL);
 
         function getWrap() {
@@ -1352,49 +1426,29 @@
         }
     }
 
-    function renderCardTotal() {
+    function renderCartBannerPrice() {
+        const {hasPackageL, discountAmount} = getCartData()
+
+        const cartBanner = document.getElementById('cart-discount-banner');
+        const mobileCartBanner = document.getElementById("mobile-cart-discount-banner");
+        if (!hasPackageL) {
+            cartBanner.style.display = 'none';
+            mobileCartBanner.style.display = 'none';
+            return;
+        }
+        cartBanner.style.display = 'block';
+        mobileCartBanner.style.display = 'block';
+
+        const cartBannerPrice = document.getElementById("cart-discount-banner-price");
+        const mobileCartBannerPrice = document.getElementById("mobile-discount-banner-price");
+
+        cartBannerPrice.innerHTML = discountAmount.toLocaleString();
+        mobileCartBannerPrice.innerHTML = discountAmount.toLocaleString();
 
     }
 
-    function updateCartUI() {
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-        // Расчет скидки
-        let productsTotal = 0;
-        let packagesTotal = 0;
-        let hasPackageL = false;
-
-        cart.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            if (item.isPackage) {
-                packagesTotal += itemTotal;
-                if (item.isPackageL === true) {
-                    hasPackageL = true;
-                } else {
-                    const skuLower = (item.sku || '').toLowerCase();
-                    const name = currentLang === 'th' ? item.name_th : item.name_en
-                    const nameLower = (name || '').toLowerCase();
-                    if (skuLower === 'package-l' || skuLower === 'l' ||
-                        nameLower.includes('package l')) {
-                        hasPackageL = true;
-                        item.isPackageL = true;
-                    }
-                }
-            } else {
-                productsTotal += itemTotal;
-            }
-        });
-
-        const subtotal = productsTotal + packagesTotal;
-        let finalPrice = subtotal;
-        let discountAmount = 0;
-        let discountPercent = 0;
-
-        if (hasPackageL && productsTotal > 0) {
-            discountPercent = 10;
-            discountAmount = Math.round((productsTotal * discountPercent) / 100);
-            finalPrice = productsTotal + packagesTotal - discountAmount;
-        }
+    function renderCardTotalPrice() {
+        const {totalItems, finalPrice, formattedPrice} = getCartData()
 
         // Обновляем счетчики
         const totalItemsEl = document.getElementById('total-items');
@@ -1409,124 +1463,37 @@
         if (cartCountEl) cartCountEl.textContent = totalItems;
         if (mobileCartCountEl) mobileCartCountEl.textContent = totalItems;
 
-        const hasDiscount = discountAmount > 0;
-        const formattedPrice = formatPriceWithDiscount(finalPrice, subtotal, discountAmount, discountPercent, hasDiscount);
-
         if (cartTotalPriceEl) cartTotalPriceEl.innerHTML = formattedPrice;
         if (mobileCartTotalPriceEl) mobileCartTotalPriceEl.innerHTML = formattedPrice;
         if (totalAmountEl) totalAmountEl.innerHTML = formattedPrice;
         if (mobileCartTotalEl) mobileCartTotalEl.textContent = finalPrice.toLocaleString() + ' THB';
 
-        // TODO - а сразу их в стили записать религия не позволяет??
-        // Стили для фиксации нижней части корзины
-        const fixedBottomStyles = `
-        <style id="cart-fixed-styles">
-            .cart-panel {
-                display: flex;
-                flex-direction: column;
-                height: calc(100vh - 180px);
-                max-height: calc(100vh - 180px);
-                overflow: hidden;
-            }
-            .cart-items-scroll {
-                flex: 1;
-                overflow-y: auto;
-                margin-bottom: 0;
-                padding-right: 5px;
-            }
-            .cart-bottom-fixed {
-                flex-shrink: 0;
-                background: white;
-                border-top: 2px solid var(--accent-primary);
-                margin-top: 12px;
-                padding-top: 12px;
-            }
-            .mobile-cart-panel {
-                display: flex;
-                flex-direction: column;
-                height: 85vh;
-                max-height: 85vh;
-                overflow: hidden;
-            }
-            .mobile-cart-items-scroll {
-                flex: 1;
-                overflow-y: auto;
-                margin-bottom: 0;
-                padding-right: 5px;
-            }
-            .mobile-cart-bottom-fixed {
-                flex-shrink: 0;
-                background: white;
-                border-top: 2px solid var(--accent-primary);
-                margin-top: 12px;
-                padding-top: 12px;
-            }
-        </style>
-    `;
+        const okBtnSpan = document.getElementById('cart-button-price');
+        okBtnSpan.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
 
-        // Добавляем стили если их нет
-        if (!document.getElementById('cart-fixed-styles')) {
-            document.head.insertAdjacentHTML('beforeend', fixedBottomStyles);
+        const okBtnSpanMobile = document.getElementById('mobile-button-price');
+        okBtnSpanMobile.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
+    }
+
+    function renderEmptyCardBlock() {
+        const emptyCardBlock = document.getElementById('cart-empty');
+        const mobileEmptyCardBlock = document.getElementById('mobile-cart-empty');
+        if (cart.length > 0) {
+            emptyCardBlock.style.display = 'none';
+            mobileEmptyCardBlock.style.display = 'none';
+        } else {
+            emptyCardBlock.style.display = 'block';
+            mobileEmptyCardBlock.style.display = 'block';
         }
+    }
 
-        console.log('render cart', cart, finalPrice)
+    function updateCartUI() {
+        renderCardTotalPrice();
+        renderCartBannerPrice();
+        renderEmptyCardBlock();
         cart.forEach(item => {
-            console.log('item.template',item.template);
-            renderCardItem(item, hasPackageL);
+            renderCardItem(item);
         })
-
-        // Обновляем десктопную корзину с фиксированной нижней частью
-        const cartPanel = document.querySelector('.cart-panel');
-        console.log('cart', cartPanel)
-        if (cartPanel) {
-            console.log('render cart')
-
-            const totalSpan = document.getElementById('cart-total-price');
-            totalSpan.innerHTML = formattedPrice;
-
-            const okBtnSpan = document.getElementById('cart-button-price');
-            console.log(okBtnSpan);
-            okBtnSpan.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
-        }
-
-        // Обновляем мобильную корзину с фиксированной нижней частью
-        const mobileCartPanel = document.getElementById('mobileCart');
-        console.log('mobile cart', mobileCartPanel)
-        if (mobileCartPanel) {
-            console.log('render mobile cart')
-
-            const mobileTotalSpan = document.getElementById('mobile-cart-total-price');
-            mobileTotalSpan.innerHTML = formattedPrice;
-
-            const okBtnSpan = document.getElementById('mobile-button-price');
-            console.log(okBtnSpan);
-            okBtnSpan.innerHTML = `(${finalPrice.toLocaleString()} THB)`;
-        }
-
-        // Обновляем информацию о скидке
-        const existingDiscountInfo = document.querySelectorAll('.cart-discount-info-inline');
-        existingDiscountInfo.forEach(el => el.remove());
-
-        if (hasPackageL && productsTotal > 0) {
-            const discountBanner = `
-            <div class="cart-discount-info-inline" style="background: #fff3e0; padding: 8px 12px; margin: 8px 0; border-radius: 12px; border-left: 3px solid #ff9800;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1rem;">🎁</span>
-                    <span style="font-weight: 600; color: #e67e22; font-size: 0.85rem;">Package L: 10% OFF on regular items (saved ${discountAmount} THB)</span>
-                </div>
-            </div>
-        `;
-
-            const cartHeader = document.querySelector('.cart-header');
-            if (cartHeader && !document.querySelector('.cart-header + .cart-discount-info-inline')) {
-                cartHeader.insertAdjacentHTML('afterend', discountBanner);
-            }
-
-            const mobileCartHeader = document.querySelector('.mobile-cart-header');
-            if (mobileCartHeader && !document.querySelector('.mobile-cart-header + .cart-discount-info-inline')) {
-                mobileCartHeader.insertAdjacentHTML('afterend', discountBanner);
-            }
-        }
     }
 
     // ===================== ФУНКЦИЯ ПРОВЕРКИ ВСЕХ ПОЛЕЙ АНКЕТЫ =====================
@@ -4141,6 +4108,56 @@
         font-size: 0.95rem;
         display: flex;
         justify-content: center;
+    }
+
+    /* Стили для фиксации нижней части корзины */
+    .cart-panel {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 180px);
+        max-height: calc(100vh - 180px);
+        overflow: hidden;
+    }
+    .cart-items-scroll {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-right: 5px;
+    }
+    .cart-bottom-fixed {
+        flex-shrink: 0;
+        background: white;
+        border-top: 2px solid var(--accent-primary);
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+    .mobile-cart-panel {
+        display: flex;
+        flex-direction: column;
+        height: 85vh;
+        max-height: 85vh;
+        overflow: hidden;
+    }
+    .mobile-cart-items-scroll {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-right: 5px;
+    }
+    .mobile-cart-bottom-fixed {
+        flex-shrink: 0;
+        background: white;
+        border-top: 2px solid var(--accent-primary);
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .cart-discount-info-inline {
+        background: #fff3e0;
+        padding: 8px 12px;
+        margin: 8px 0;
+        border-radius: 12px;
+        border-left: 3px solid #ff9800;
     }
 </style>
 </body>
