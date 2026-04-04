@@ -292,17 +292,6 @@
     const mobileNav = document.getElementById('mobileCategoryNav');
     let isMobile = window.innerWidth <= 900;
     let scrolled = false;
-    // ===================== КЭШИРОВАНИЕ ДАННЫХ =====================
-    const CACHE_KEYS = {
-        CONFIG: 'supabase_config_cache',
-        PRODUCTS: 'products_cache',
-        CATEGORIES: 'categories_cache',
-        TIMESTAMP: 'last_fetch_timestamp'
-    };
-
-    const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
-    let isInitialized = false;
-    let dataLoadPromise = null;
 
     // ===================== ИНИЦИАЛИЗАЦИЯ =====================
     let categories = [];
@@ -2047,8 +2036,7 @@
         const textFields = [
             {id: isMobile ? 'mobile-clientName' : 'clientName'},
             {id: isMobile ? 'mobile-studentFirstName' : 'studentFirstName'},
-            {id: isMobile ? 'mobile-studentLastName' : 'studentLastName'},
-            {id: isMobile ? 'mobile-clientLine' : 'clientLine'}
+            {id: isMobile ? 'mobile-studentLastName' : 'studentLastName'}
         ];
 
         textFields.forEach(({id}) => {
@@ -2066,62 +2054,42 @@
             }
         });
 
-        // Поле телефона - только цифры и разрешенные символы
+        // Поле телефона - только цифры и разрешенные символы +66 97 157 6767 / 097 157 6757
         const phoneField = document.getElementById(isMobile ? 'mobile-clientPhone' : 'clientPhone');
         if (phoneField) {
             phoneField.addEventListener('input', function (e) {
                 let value = this.value;
-                let filtered = value.replace(/[^0-9\s\-+()]/g, '');
-                if (filtered !== value) {
-                    this.value = filtered;
+
+                let check = /^\+?([0-9\s-()])*$/g.test(value);
+                if (!check) {
+                    this.value = value.slice(0, -1);
+                    showToast('Wrong symbol used', 'error');
                 }
             });
         }
 
-        // Поле класса - только цифры от 1 до 11
+        const lineField = document.getElementById(isMobile ? 'mobile-clientLine' : 'clientLine');
+        if (lineField) {
+            lineField.addEventListener('input', function (e) {
+                let value = this.value;
+
+                let check = /^@?[0-9a-zA-Z._-]{0,25}$/g.test(value);
+                if (!check) {
+                    this.value = value.slice(0, -1);
+                    showToast('Wrong symbol used', 'error');
+                }
+            })
+        }
+
         const classField = document.getElementById(isMobile ? 'mobile-classGrade' : 'classGrade');
         if (classField) {
             classField.addEventListener('input', function (e) {
                 let value = this.value;
-                // Удаляем все не-цифры
-                let filtered = value.replace(/[^0-9]/g, '');
 
-                // Ограничиваем длину до 2 символов (макс 11)
-                if (filtered.length > 2) {
-                    filtered = filtered.slice(0, 2);
-                }
-
-                // Проверяем диапазон
-                if (filtered && (parseInt(filtered) < 1 || parseInt(filtered) > 11)) {
-                    if (filtered.length === 2 && parseInt(filtered) > 11) {
-                        filtered = filtered.slice(0, 1);
-                    }
-                }
-
-                if (filtered !== value) {
-                    this.value = filtered;
-                }
-
-                // Дополнительная проверка при вводе
-                if (filtered && (parseInt(filtered) < 1 || parseInt(filtered) > 11)) {
-                    this.style.border = '2px solid #c44536';
-                    this.style.backgroundColor = '#fff8f8';
-                } else {
-                    this.style.border = '2px solid var(--border-color)';
-                    this.style.backgroundColor = 'white';
-                }
-            });
-
-            classField.addEventListener('blur', function () {
-                let value = this.value;
-                if (value) {
-                    const num = parseInt(value, 10);
-                    if (num < 1 || num > 11) {
-                        this.value = '';
-                        showToast('Class must be between 1 and 11', 'error');
-                        this.style.border = '2px solid #c44536';
-                        this.style.backgroundColor = '#fff8f8';
-                    }
+                let check = /^[0-9a-zA-Z._\/\\ -]*$/g.test(value);
+                if (!check) {
+                    this.value = value.slice(0, -1);
+                    showToast('Wrong symbol used', 'error');
                 }
             });
         }
@@ -2138,10 +2106,10 @@
             hintDiv.style.cssText = `
             margin-top: 20px;
             padding: 12px 24px;
-            border: 2px solid #c44536;
+            border: 2px solid var(--accent-primary);
             border-radius: 50px;
             background: #fff8f8;
-            color: #c44536;
+            color: var(--accent-primary);
             font-size: 1rem;
             font-weight: 600;
             text-align: center;
