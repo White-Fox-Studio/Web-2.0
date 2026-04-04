@@ -1494,24 +1494,6 @@
 
         // Все обязательные поля анкеты
         const fields = {
-            clientName: {
-                element: document.getElementById(isMobile ? 'mobile-clientName' : 'clientName'),
-                label: 'Full Name',
-                value: null,
-                validation: 'english' // только английские буквы
-            },
-            clientPhone: {
-                element: document.getElementById(isMobile ? 'mobile-clientPhone' : 'clientPhone'),
-                label: 'Phone Number',
-                value: null,
-                validation: 'phone' // телефон
-            },
-            clientLine: {
-                element: document.getElementById(isMobile ? 'mobile-clientLine' : 'clientLine'),
-                label: 'Line ID',
-                value: null,
-                validation: 'english_numbers' // английские буквы и цифры
-            },
             studentFirstName: {
                 element: document.getElementById(isMobile ? 'mobile-studentFirstName' : 'studentFirstName'),
                 label: 'Student First Name',
@@ -1523,12 +1505,6 @@
                 label: 'Student Family Name',
                 value: null,
                 validation: 'english'
-            },
-            birthdate: {
-                element: document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate'),
-                label: 'Birthdate (DD/MM/YYYY)',
-                value: null,
-                validation: 'date'
             },
             classGrade: {
                 element: document.getElementById(isMobile ? 'mobile-classGrade' : 'classGrade'),
@@ -1551,30 +1527,42 @@
         // Проверяем заполненность и валидность
         let hasErrors = false;
         const errorMessages = [];
+        const errorFields = [];
         const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
-        for (const [key, field] of Object.entries(fields)) {
-            if (!field.element) continue;
+        function setFieldError(field) {
+            errorFields.push(field);
+            field.element.style.border = '2px solid #c44536';
+            field.element.style.backgroundColor = '#fff8f8';
 
+            const removeHighlight = () => {
+                if (field.element) {
+                    field.element.style.border = '';
+                    field.element.style.backgroundColor = '';
+                    field.element.removeEventListener('input', removeHighlight);
+                    field.element.removeEventListener('change', removeHighlight);
+                }
+            };
+            field.element.addEventListener('input', removeHighlight, {once: true});
+            field.element.addEventListener('change', removeHighlight, {once: true});
+        }
+
+        function setFieldChecked(field) {
+            field.element.style.border = '2px solid var(--border-color)';
+            field.element.style.backgroundColor = 'white';
+        }
+
+        for (const [key, field] of Object.entries(fields)) {
+            if (!field.element) {
+                errorMessages.push('Critical: required field missed');
+                hasErrors = true;
+            }
             const value = field.value;
 
-            // Проверяем что поле не пустое
             if (value === '') {
                 hasErrors = true;
                 errorMessages.push(`${field.label} is required`);
-                field.element.style.border = '2px solid #c44536';
-                field.element.style.backgroundColor = '#fff8f8';
-
-                const removeHighlight = () => {
-                    if (field.element) {
-                        field.element.style.border = '';
-                        field.element.style.backgroundColor = '';
-                        field.element.removeEventListener('input', removeHighlight);
-                        field.element.removeEventListener('change', removeHighlight);
-                    }
-                };
-                field.element.addEventListener('input', removeHighlight, {once: true});
-                field.element.addEventListener('change', removeHighlight, {once: true});
+                setFieldError(field);
                 continue;
             }
 
@@ -1585,147 +1573,19 @@
                     if (!/^[A-Za-z\s\-']+$/.test(value)) {
                         hasErrors = true;
                         errorMessages.push(`${field.label}: Use English letters only`);
-                        field.element.style.border = '2px solid #c44536';
-                        field.element.style.backgroundColor = '#fff8f8';
-
-                        const removeHighlight = () => {
-                            if (field.element) {
-                                field.element.style.border = '';
-                                field.element.style.backgroundColor = '';
-                                field.element.removeEventListener('input', removeHighlight);
-                                field.element.removeEventListener('change', removeHighlight);
-                            }
-                        };
-                        field.element.addEventListener('input', removeHighlight, {once: true});
-                        field.element.addEventListener('change', removeHighlight, {once: true});
+                        setFieldError(field);
                     } else {
-                        field.element.style.border = '2px solid var(--border-color)';
-                        field.element.style.backgroundColor = 'white';
-                    }
-                    break;
-
-                case 'english_numbers':
-                    // Английские буквы, цифры, пробелы, дефисы, подчеркивания
-                    if (!/^[A-Za-z0-9\s\-_]+$/.test(value)) {
-                        hasErrors = true;
-                        errorMessages.push(`${field.label}: Use English letters and numbers only`);
-                        field.element.style.border = '2px solid #c44536';
-                        field.element.style.backgroundColor = '#fff8f8';
-
-                        const removeHighlight = () => {
-                            if (field.element) {
-                                field.element.style.border = '';
-                                field.element.style.backgroundColor = '';
-                                field.element.removeEventListener('input', removeHighlight);
-                                field.element.removeEventListener('change', removeHighlight);
-                            }
-                        };
-                        field.element.addEventListener('input', removeHighlight, {once: true});
-                        field.element.addEventListener('change', removeHighlight, {once: true});
-                    } else {
-                        field.element.style.border = '2px solid var(--border-color)';
-                        field.element.style.backgroundColor = 'white';
-                    }
-                    break;
-
-                case 'phone':
-                    // Телефон: цифры, пробелы, дефисы, плюс, скобки
-                    if (!/^[0-9\s\-+()]+$/.test(value)) {
-                        hasErrors = true;
-                        errorMessages.push(`${field.label}: Use only numbers and + - ( )`);
-                        field.element.style.border = '2px solid #c44536';
-                        field.element.style.backgroundColor = '#fff8f8';
-
-                        const removeHighlight = () => {
-                            if (field.element) {
-                                field.element.style.border = '';
-                                field.element.style.backgroundColor = '';
-                                field.element.removeEventListener('input', removeHighlight);
-                                field.element.removeEventListener('change', removeHighlight);
-                            }
-                        };
-                        field.element.addEventListener('input', removeHighlight, {once: true});
-                        field.element.addEventListener('change', removeHighlight, {once: true});
-                    } else {
-                        field.element.style.border = '2px solid var(--border-color)';
-                        field.element.style.backgroundColor = 'white';
-                    }
-                    break;
-
-                case 'date':
-                    // Проверяем формат даты DD/MM/YYYY
-                    if (!datePattern.test(value)) {
-                        hasErrors = true;
-                        errorMessages.push(`${field.label}: Use DD/MM/YYYY format`);
-                        field.element.style.border = '2px solid #c44536';
-                        field.element.style.backgroundColor = '#fff8f8';
-
-                        const removeHighlight = () => {
-                            if (field.element) {
-                                field.element.style.border = '';
-                                field.element.style.backgroundColor = '';
-                                field.element.removeEventListener('input', removeHighlight);
-                                field.element.removeEventListener('change', removeHighlight);
-                            }
-                        };
-                        field.element.addEventListener('input', removeHighlight, {once: true});
-                        field.element.addEventListener('change', removeHighlight, {once: true});
-                    } else {
-                        const match = datePattern.exec(value);
-                        const day = parseInt(match[1], 10);
-                        const month = parseInt(match[2], 10);
-                        const year = parseInt(match[3], 10);
-
-                        const date = new Date(year, month - 1, day);
-                        const isValidDate = date.getFullYear() === year &&
-                            date.getMonth() === month - 1 &&
-                            date.getDate() === day;
-
-                        if (!isValidDate || year < 1900 || year > new Date().getFullYear()) {
-                            hasErrors = true;
-                            errorMessages.push(`${field.label}: Invalid date`);
-                            field.element.style.border = '2px solid #c44536';
-                            field.element.style.backgroundColor = '#fff8f8';
-
-                            const removeHighlight = () => {
-                                if (field.element) {
-                                    field.element.style.border = '';
-                                    field.element.style.backgroundColor = '';
-                                    field.element.removeEventListener('input', removeHighlight);
-                                    field.element.removeEventListener('change', removeHighlight);
-                                }
-                            };
-                            field.element.addEventListener('input', removeHighlight, {once: true});
-                            field.element.addEventListener('change', removeHighlight, {once: true});
-                        } else {
-                            field.element.style.border = '2px solid var(--border-color)';
-                            field.element.style.backgroundColor = 'white';
-                        }
+                        setFieldChecked(field)
                     }
                     break;
 
                 case 'class':
-                    // Класс: число от 1 до 11
-                    const classNum = parseInt(value, 10);
-                    if (isNaN(classNum) || classNum < 1 || classNum > 11 || classNum.toString() !== value) {
+                    if (!/^[0-9a-zA-Z._\/\\ -]*$/g.test(value)) {
                         hasErrors = true;
-                        errorMessages.push(`${field.label}: Must be a number between 1 and 11`);
-                        field.element.style.border = '2px solid #c44536';
-                        field.element.style.backgroundColor = '#fff8f8';
-
-                        const removeHighlight = () => {
-                            if (field.element) {
-                                field.element.style.border = '';
-                                field.element.style.backgroundColor = '';
-                                field.element.removeEventListener('input', removeHighlight);
-                                field.element.removeEventListener('change', removeHighlight);
-                            }
-                        };
-                        field.element.addEventListener('input', removeHighlight, {once: true});
-                        field.element.addEventListener('change', removeHighlight, {once: true});
+                        errorMessages.push(`${field.label}: Use English letters, numbers and symbols ( . _ - \\ / ) only`);
+                        setFieldError(field);
                     } else {
-                        field.element.style.border = '2px solid var(--border-color)';
-                        field.element.style.backgroundColor = 'white';
+                        setFieldChecked(field)
                     }
                     break;
             }
@@ -1755,34 +1615,17 @@
                     formContainer.style.transition = originalTransition || '';
                 }, 2000);
             }
+            const field = errorFields[0]
 
             // Находим первое поле с ошибкой
-            for (const [key, field] of Object.entries(fields)) {
+            for (const field in errorFields) {
                 if (!field.element) continue;
 
-                const value = field.value;
-
-                if (value === '' && field.element) {
-                    setTimeout(() => {
-                        field.element.focus();
-                        field.element.scrollIntoView({behavior: 'smooth', block: 'center'});
-                    }, 500);
-                    break;
-                } else if (key === 'birthdate' && value && field.element) {
-                    if (!datePattern.test(value)) {
-                        setTimeout(() => {
-                            field.element.focus();
-                            field.element.scrollIntoView({behavior: 'smooth', block: 'center'});
-                        }, 500);
-                        break;
-                    }
-                } else if (field.element && field.element.style.border === '2px solid #c44536') {
-                    setTimeout(() => {
-                        field.element.focus();
-                        field.element.scrollIntoView({behavior: 'smooth', block: 'center'});
-                    }, 500);
-                    break;
-                }
+                setTimeout(() => {
+                    field.element.focus();
+                    field.element.scrollIntoView({behavior: 'smooth', block: 'center'});
+                }, 500);
+                break;
             }
 
             // Показываем первое сообщение об ошибке
@@ -2145,13 +1988,15 @@
             document.getElementById('mobile-clientLine')?.value.trim() :
             document.getElementById('clientLine')?.value.trim();
 
-        const studentFirstName = isMobile ?
-            document.getElementById('mobile-studentFirstName')?.value.trim() :
-            document.getElementById('studentFirstName')?.value.trim();
+        const studentFirstNameEl = isMobile ?
+            document.getElementById('mobile-studentFirstName') :
+            document.getElementById('studentFirstName')
+        const studentFirstName = studentFirstNameEl?.value.trim();
 
-        const studentLastName = isMobile ?
-            document.getElementById('mobile-studentLastName')?.value.trim() :
-            document.getElementById('studentLastName')?.value.trim();
+        const studentLastNameEl = isMobile ?
+            document.getElementById('mobile-studentLastName') :
+            document.getElementById('studentLastName')
+        const studentLastName = studentLastNameEl?.value.trim();
 
         const birthdateField = isMobile ?
             document.getElementById('mobile-birthdate') :
@@ -2159,9 +2004,10 @@
 
         const birthdateRaw = birthdateField?.value?.trim() || '';
 
-        const classGrade = isMobile ?
-            document.getElementById('mobile-classGrade')?.value.trim() :
-            document.getElementById('classGrade')?.value.trim();
+        const classGradeEl = isMobile ?
+            document.getElementById('mobile-classGrade') :
+            document.getElementById('classGrade')
+        const classGrade = classGradeEl?.value.trim();
 
         const statusDiv = document.getElementById('crmStatus');
         if (!statusDiv) return;
@@ -2180,20 +2026,24 @@
         console.log('classGrade:', classGrade);
         console.log('cart length:', cart.length);
 
+        function showError(element) {
+            closeMobileCart();
+            setTimeout(() => {
+                element.focus();
+                element.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }, 500);
+        }
+
         // Проверяем обязательные поля (включая Line ID и дату рождения)
-        if (!clientName || !clientPhone || !clientLine || !studentFirstName || !studentLastName || !birthdateRaw || !classGrade) {
+        if (!studentFirstName || !studentLastName || !classGrade) {
             console.log('Missing fields detected');
             statusDiv.className = 'status-message status-error';
-            statusDiv.textContent = 'Please fill all required fields (including Line ID and Birthdate)';
+            statusDiv.textContent = 'Please fill all required fields';
 
             // Подсвечиваем незаполненные поля
             const fieldsToCheck = {
-                clientName: isMobile ? 'mobile-clientName' : 'clientName',
-                clientPhone: isMobile ? 'mobile-clientPhone' : 'clientPhone',
-                clientLine: isMobile ? 'mobile-clientLine' : 'clientLine',
                 studentFirstName: isMobile ? 'mobile-studentFirstName' : 'studentFirstName',
                 studentLastName: isMobile ? 'mobile-studentLastName' : 'studentLastName',
-                birthdate: isMobile ? 'mobile-birthdate' : 'birthdate',
                 classGrade: isMobile ? 'mobile-classGrade' : 'classGrade'
             };
 
@@ -2209,28 +2059,10 @@
                 }
             }
 
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 3000);
-            return;
-        }
-
-        // Проверяем формат даты (должно быть DD/MM/YYYY)
-        const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-        if (!datePattern.test(birthdateRaw)) {
-            console.log('Invalid date format:', birthdateRaw);
-            statusDiv.className = 'status-message status-error';
-            statusDiv.textContent = 'Invalid birthdate format. Please use DD/MM/YYYY (enter only numbers)';
-
-            const birthdateFieldElem = document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate');
-            if (birthdateFieldElem) {
-                birthdateFieldElem.style.border = '2px solid #c44536';
-                birthdateFieldElem.style.backgroundColor = '#fff8f8';
-                birthdateFieldElem.addEventListener('input', function () {
-                    this.style.border = '';
-                    this.style.backgroundColor = '';
-                }, {once: true});
-            }
+            const field = !studentFirstName ? studentFirstNameEl :
+                !studentLastName ? studentLastNameEl :
+                    classGradeEl;
+            showError(field)
 
             setTimeout(() => {
                 statusDiv.style.display = 'none';
@@ -2238,36 +2070,67 @@
             return;
         }
 
-        // Проверяем корректность даты
-        const match = datePattern.exec(birthdateRaw);
-        if (match) {
-            const day = parseInt(match[1], 10);
-            const month = parseInt(match[2], 10);
-            const year = parseInt(match[3], 10);
+        if (birthdateRaw) {
+            // Проверяем формат даты (должно быть DD/MM/YYYY)
+            const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+            if (!datePattern.test(birthdateRaw)) {
 
-            const date = new Date(year, month - 1, day);
-            const isValidDate = date.getFullYear() === year &&
-                date.getMonth() === month - 1 &&
-                date.getDate() === day &&
-                year >= 1900 &&
-                year <= new Date().getFullYear();
-
-            if (!isValidDate) {
-                console.log('Invalid date values:', {day, month, year});
+                console.log('Invalid date format:', birthdateRaw);
                 statusDiv.className = 'status-message status-error';
-                statusDiv.textContent = 'Invalid date. Please check day, month, and year';
+                statusDiv.textContent = 'Invalid birthdate format. Please use DD/MM/YYYY (enter only numbers)';
 
                 const birthdateFieldElem = document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate');
                 if (birthdateFieldElem) {
                     birthdateFieldElem.style.border = '2px solid #c44536';
                     birthdateFieldElem.style.backgroundColor = '#fff8f8';
+                    birthdateFieldElem.addEventListener('input', function () {
+                        this.style.border = '';
+                        this.style.backgroundColor = '';
+                    }, {once: true});
+                    showError(birthdateFieldElem)
                 }
+
 
                 setTimeout(() => {
                     statusDiv.style.display = 'none';
                 }, 3000);
                 return;
             }
+
+            // Проверяем корректность даты
+            const match = datePattern.exec(birthdateRaw);
+            if (match) {
+                const day = parseInt(match[1], 10);
+                const month = parseInt(match[2], 10);
+                const year = parseInt(match[3], 10);
+
+                const date = new Date(year, month - 1, day);
+                const isValidDate = date.getFullYear() === year &&
+                    date.getMonth() === month - 1 &&
+                    date.getDate() === day &&
+                    year >= 1900 &&
+                    year <= new Date().getFullYear();
+
+                if (!isValidDate) {
+                    console.log('Invalid date values:', {day, month, year});
+                    statusDiv.className = 'status-message status-error';
+                    statusDiv.textContent = 'Invalid date. Please check day, month, and year';
+
+                    const birthdateFieldElem = document.getElementById(isMobile ? 'mobile-birthdate' : 'birthdate');
+                    if (birthdateFieldElem) {
+                        birthdateFieldElem.style.border = '2px solid #c44536';
+                        birthdateFieldElem.style.backgroundColor = '#fff8f8';
+
+                        showError(birthdateFieldElem)
+                    }
+
+                    setTimeout(() => {
+                        statusDiv.style.display = 'none';
+                    }, 3000);
+                    return;
+                }
+            }
+
         }
 
         if (cart.length === 0) {
