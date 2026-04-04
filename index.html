@@ -2617,7 +2617,7 @@
         align-items: center;
         justify-content: flex-start;
         position: sticky;
-        top: 80px;
+        top: 74px;
         z-index: 45;
         box-shadow: 0 4px 15px var(--shadow-color);
         backdrop-filter: blur(5px);
@@ -2654,7 +2654,7 @@
 
     .mobile-category-nav {
         display: none;
-        background: rgba(136, 221, 222, 0.9);
+        background: rgba(136, 221, 222, 0.8);
         padding: 0.2rem 1rem;
         border-bottom: none;
         overflow-x: auto;
@@ -3561,7 +3561,6 @@
             position: sticky !important;
             top: 97px;
             z-index: 999 !important;
-            background: rgba(136, 221, 222, 0.95) !important;
             backdrop-filter: blur(5px) !important;
             padding: 0 !important;
             margin: 0 !important;
@@ -3571,7 +3570,6 @@
             overflow-x: auto !important;
             flex-wrap: nowrap !important;
             gap: 2px !important;
-            border-bottom: 1px solid var(--accent-primary) !important;
             box-shadow: 0 4px 15px var(--shadow-color) !important;
             -webkit-overflow-scrolling: touch !important;
             scrollbar-width: none !important;
@@ -3600,17 +3598,6 @@
             flex: 0 0 auto !important;
             text-decoration: none !important;
             text-transform: uppercase !important;
-        }
-
-        .mobile-category-nav .cat-link:not(:last-child)::after {
-            content: "";
-            position: absolute;
-            right: -1px;
-            top: 25%;
-            height: 50%;
-            width: 1px;
-            background: var(--accent-primary) !important;
-            opacity: 0.3;
         }
 
         .mobile-category-nav .cat-link:hover {
