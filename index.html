@@ -780,6 +780,103 @@
         }
     }
 
+    function getPackageTemplate(prod) {
+        let specsHtml = '';
+        if (prod.totalPhotos > 0) {
+            specsHtml += `
+                    <div class="info-badge">
+                        ${prod.totalPhotos} photos included
+                    </div>
+                `;
+        }
+
+        if (prod.packageItems && prod.packageItems.length > 0) {
+            specsHtml += `<div class="package-items">`;
+            prod.packageItems.forEach(item => {
+                const itemName = currentLang === 'th' ? (item.name_th || item.sku) : (item.name_en || item.sku);
+                specsHtml += `<div class="package-item">${item.qty} × ${itemName}</div>`;
+            });
+            specsHtml += `</div>`;
+        }
+
+        return specsHtml;
+    }
+
+    function getSpecificationsTemplate(prod) {
+        let specsHtml = '';
+        // Собираем уникальные значения
+        const uniqueSizes = [...new Set(prod.variants.map(v => v.size_label).filter(Boolean))];
+        const uniquePoses = [...new Set(prod.variants.map(v => v.pose).filter(Boolean))];
+        const uniqueColors = [...new Set(prod.variants.map(v => v.color).filter(Boolean))];
+
+        // Добавляем характеристики
+        if (uniqueSizes.length > 0 || uniquePoses.length > 0 || uniqueColors.length > 0) {
+            specsHtml += `<div class="product-specs-info">`;
+
+            if (uniqueSizes.length > 0) {
+                specsHtml += `
+                        <div class="spec-info-item">
+                            <span class="spec-label">Size:</span>
+                            <span class="spec-value">${uniqueSizes.join(', ')}</span>
+                        </div>
+                    `;
+            }
+
+            if (uniquePoses.length > 0) {
+                specsHtml += `
+                        <div class="spec-info-item">
+                            <span class="spec-label">Pose:</span>
+                            <span class="spec-value">${uniquePoses.join(', ')}</span>
+                        </div>
+                    `;
+            }
+
+            if (uniqueColors.length > 0) {
+                specsHtml += `
+                        <div class="spec-info-item">
+                            <span class="spec-label">Color:</span>
+                            <span class="spec-value">${uniqueColors.join(', ')}</span>
+                        </div>
+                    `;
+            }
+
+            specsHtml += `</div>`;
+        }
+        return specsHtml;
+    }
+
+    function getSelectTemplate(prod) {
+        return `
+                    <div class="variant-selector-wrapper">
+                        <select class="variant-selector" id="variant-select-${prod.id}"
+                                onchange="updateCardData(this,'${prod.id}')">
+                            ${prod.variants.map((v, idx) => {
+            let variantText = '';
+            let variantParts = [];
+            if (v.size_label) variantParts.push(v.size_label);
+            if (v.pose) variantParts.push(v.pose);
+            if (v.color) variantParts.push(v.color);
+            variantText = variantParts.join(' / ');
+            if (!variantText) variantText = v.sku;
+            variantName = currentLang === 'th' ? v.name_th : v.name_en;
+            const selected = prod.selected ? prod.selected.sku === v.sku : idx === 0;
+
+            const variantImage = v.image_url || prod.image_url || '';
+
+            return `<option value="${v.sku}"
+                                        data-price="${v.price}"
+                                        data-description="${currentLang === 'th' ? (v.descriptions_th || '') : (v.descriptions || '')}"
+                                        data-image="${variantImage}"
+                                        ${selected ? 'selected' : ''}>
+                                   <div>${variantText} — ฿${v.price}</div>
+                                   <div>${variantName}</div>
+                                </option>`;
+        }).join('')}
+                        </select>
+                    </div>
+                `;
+    }
+
     function renderProducts(grid, productsList) {
         if (!grid) return;
 
@@ -797,130 +894,48 @@
             return (a.sku || '').localeCompare(b.sku || '');
         });
 
-        let html = '';
+        let nodes = [];
 
         sortedProducts.forEach(prod => {
-            const displayName = currentLang === 'th' ? (prod.name_th || prod.name || prod.sku) : (prod.name_en || prod.name || prod.sku);
+            let displayName = currentLang === 'th' ? (prod.name_th || prod.name || prod.sku) : (prod.name_en || prod.name || prod.sku);
 
             let specsHtml = '';
-
-            // ========== ДЛЯ ПАКЕТОВ ==========
-            if (prod.isPackage) {
-                if (prod.totalPhotos > 0) {
-                    specsHtml += `
-                    <div class="info-badge">
-                        ${prod.totalPhotos} photos included
-                    </div>
-                `;
-                }
-
-                if (prod.packageItems && prod.packageItems.length > 0) {
-                    specsHtml += `<div class="package-items">`;
-                    prod.packageItems.forEach(item => {
-                        const itemName = currentLang === 'th' ? (item.name_th || item.sku) : (item.name_en || item.sku);
-                        specsHtml += `<div class="package-item">${item.qty} × ${itemName}</div>`;
-                    });
-                    specsHtml += `</div>`;
-                }
-            }
-
-            // ========== ДЛЯ ОБЫЧНЫХ ТОВАРОВ ==========
-            if (!prod.isPackage && prod.variants && prod.variants.length > 0) {
-                // Собираем уникальные значения
-                const uniqueSizes = [...new Set(prod.variants.map(v => v.size_label).filter(Boolean))];
-                const uniquePoses = [...new Set(prod.variants.map(v => v.pose).filter(Boolean))];
-                const uniqueColors = [...new Set(prod.variants.map(v => v.color).filter(Boolean))];
-
-                // Добавляем характеристики
-                if (uniqueSizes.length > 0 || uniquePoses.length > 0 || uniqueColors.length > 0) {
-                    specsHtml += `<div class="product-specs-info">`;
-
-                    if (uniqueSizes.length > 0) {
-                        specsHtml += `
-                        <div class="spec-info-item">
-                            <span class="spec-label">Size:</span>
-                            <span class="spec-value">${uniqueSizes.join(', ')}</span>
-                        </div>
-                    `;
-                    }
-
-                    if (uniquePoses.length > 0) {
-                        specsHtml += `
-                        <div class="spec-info-item">
-                            <span class="spec-label">Pose:</span>
-                            <span class="spec-value">${uniquePoses.join(', ')}</span>
-                        </div>
-                    `;
-                    }
-
-                    if (uniqueColors.length > 0) {
-                        specsHtml += `
-                        <div class="spec-info-item">
-                            <span class="spec-label">Color:</span>
-                            <span class="spec-value">${uniqueColors.join(', ')}</span>
-                        </div>
-                    `;
-                    }
-
-                    specsHtml += `</div>`;
-                }
-            }
-
-            // ========== ВАРИАНТЫ ТОВАРА ==========
+            let descriptionText = '';
             let variantsSelectorHtml = '';
             let currentPrice = prod.base_price || prod.price || 0;
             let currentSku = prod.sku;
-            let currentDescription = '';
             let currentImage = prod.image_url || '';
 
-            if (!prod.isPackage && prod.variants && prod.variants.length > 0) {
-                // Находим данные для первого варианта
-                const firstVariant = prod.variants[0];
-                if (firstVariant) {
-                    currentPrice = firstVariant.price;
-                    if (firstVariant.sku) currentSku = firstVariant.sku;
-                    currentDescription = currentLang === 'th' ? (firstVariant.descriptions_th || '') : (firstVariant.descriptions || '');
-                    currentImage = firstVariant.image_url || prod.image_url || '';
-                }
-
-                // Показываем селект ТОЛЬКО если больше 1 варианта
-                if (prod.variants.length > 1) {
-                    variantsSelectorHtml = `
-                    <div class="variant-selector-wrapper">
-                        <select class="variant-selector" id="variant-select-${prod.id}"
-                                onchange="updateCardData('${prod.id}')">
-                            ${prod.variants.map((v, idx) => {
-                        let variantText = '';
-                        let variantParts = [];
-                        if (v.size_label) variantParts.push(v.size_label);
-                        if (v.pose) variantParts.push(v.pose);
-                        if (v.color) variantParts.push(v.color);
-                        variantText = variantParts.join(' / ');
-                        if (!variantText) variantText = v.sku;
-
-                        const variantImage = v.image_url || prod.image_url || '';
-
-                        return `<option value="${v.sku}"
-                                        data-price="${v.price}"
-                                        data-description="${currentLang === 'th' ? (v.descriptions_th || '') : (v.descriptions || '')}"
-                                        data-image="${variantImage}"
-                                        ${idx === 0 ? 'selected' : ''}>
-                                    ${variantText} — ฿${v.price}
-                                </option>`;
-                    }).join('')}
-                        </select>
-                    </div>
-                `;
-                }
-                // Если 1 вариант - селект не показываем, данные уже установлены из firstVariant
-            }
-
-            // Description
-            let descriptionText = '';
             if (prod.isPackage) {
+                // ========== ДЛЯ ПАКЕТОВ ==========
+                specsHtml += getPackageTemplate(prod);
                 descriptionText = currentLang === 'th' ? prod.description_th || '' : prod.description_en || '';
             } else {
+                let currentDescription = '';
+                // ========== ДЛЯ ОБЫЧНЫХ ТОВАРОВ ==========
+                if (prod.variants && prod.variants.length > 0) {
+                    // ========== БЛОК СПЕЦИФИКАЦИЙ ==========
+                    specsHtml += getSpecificationsTemplate(prod);
+                    // ========== ВАРИАНТЫ ТОВАРА ==========
+
+                    // ========== ЦЕНА, КАРТИНКА, ОПИСАНИЕ И ИМЯ ИЗ ТЕКУЩЕГО ВАРИАНТА ===========
+                    const selectedVariant = prod.selected || prod.variants[0];
+                    if (selectedVariant) {
+                        currentPrice = selectedVariant.price;
+                        if (selectedVariant.sku) currentSku = selectedVariant.sku;
+                        currentDescription = currentLang === 'th' ? (selectedVariant.descriptions_th || '') : (selectedVariant.descriptions || '');
+                        currentImage = selectedVariant.image_url || prod.image_url || '';
+                        displayName = currentLang === 'th' ? selectedVariant.name_th : selectedVariant.name_en;
+                    }
+
+                    // ========== ВЫБОР ВАРИАНТОВ ==========
+                    if (prod.variants.length > 1) {
+                        variantsSelectorHtml = getSelectTemplate(prod);
+                    }
+                }
+                // ========== ОПИСАНИЕ ================
                 descriptionText = currentDescription || (currentLang === 'th' ? prod.description_th || '' : prod.description_en || '');
+
             }
 
             let descHtml = '';
@@ -931,8 +946,19 @@
             let priceHtml = `<span class="price" id="price-${prod.id}">฿${currentPrice}</span>`;
             let btnHtml = `<button class="add-to-cart-btn" onclick="addToCart('${prod.id}')">+</button>`;
 
-            html += `<div class="product-card ${prod.isPackage ? 'package-card' : ''}" id="card-${prod.id}">
-            <div class="product-image" onclick="window.open('${currentImage || prod.image_url}', '_blank')">
+            const hasNode = prod.node && prod.node.isConnected;
+
+            const node = hasNode ? prod.node : document.createElement('div');
+
+            if (!hasNode) {
+                grid.append(node);
+                prod.node = node;
+                node.id = `card-${prod.id}`
+                node.classList.add('product-card');
+                if (prod.isPackage) { node.classList.add('package-card'); }
+            }
+
+            node.innerHTML = `<div class="product-image" onclick="window.open('${currentImage || prod.image_url}', '_blank')">
                 <img id="img-${prod.id}"
                      src="${currentImage || prod.image_url}"
                      alt="${prod.sku}"
@@ -940,7 +966,7 @@
             </div>
             <div class="product-header">
                 <span class="product-sku" id="sku-${prod.id}">${currentSku}</span>
-                <span class="product-title">${displayName}</span>
+                <span class="product-title" id="name-${prod.id}">${displayName}</span>
             </div>
             ${specsHtml}
             ${descHtml}
@@ -948,34 +974,42 @@
             <div class="price-area">
                 <div class="price-wrapper">${priceHtml}</div>
                 ${btnHtml}
-            </div>
-        </div>`;
+            </div>`;
         });
-
-        grid.innerHTML = html;
     }
 
     // Обновленная функция обновления данных при выборе варианта
-    window.updateCardData = function (cardId) {
-        const selectEl = document.getElementById(`variant-select-${cardId}`);
-        if (!selectEl) return;
+    window.updateCardData = function (element, cardId) {
+        const prod = products.find(prod => prod.id === cardId);
+        if (!prod) return;
 
-        const selectedOption = selectEl.options[selectEl.selectedIndex];
-        const price = selectedOption.getAttribute('data-price');
-        const description = selectedOption.getAttribute('data-description');
-        const imageUrl = selectedOption.getAttribute('data-image');
-        const selectedSku = selectEl.value; // Получаем SKU из value option
+        const selectedSku = element.value; // Получаем SKU из value option
+        const variant = prod.variants.find(v => v.sku === selectedSku);
+        prod.selected = variant;
 
-        // Обновляем цену
-        const priceEl = document.getElementById(`price-${cardId}`);
-        if (priceEl && price) {
-            priceEl.textContent = `฿${price}`;
-        }
+        console.log(prod, variant);
+
+        const price = variant.price;
+        const description = currentLang === 'th' ? (variant.descriptions_th || '') : (variant.descriptions || '');;
+        const imageUrl = variant.image_url || prod.image_url || '';
+        const displayName = currentLang === 'th' ? variant.name_th : variant.name_en;
 
         // Обновляем SKU
         const skuEl = document.getElementById(`sku-${cardId}`);
         if (skuEl && selectedSku) {
             skuEl.textContent = selectedSku;
+        }
+
+        // Обновляем имя
+        const nameEl = document.getElementById(`name-${cardId}`);
+        if (nameEl && name) {
+            nameEl.textContent = name;
+        }
+
+        // Обновляем цену
+        const priceEl = document.getElementById(`price-${cardId}`);
+        if (priceEl && price) {
+            priceEl.textContent = `฿${price}`;
         }
 
         // Обновляем описание
@@ -992,28 +1026,6 @@
             if (parentDiv) {
                 parentDiv.setAttribute('onclick', `window.open('${imageUrl}', '_blank')`);
             }
-        }
-    };
-
-    // Функция обновления цены при выборе варианта
-    window.updateCardPrice = function (cardId) {
-        const selectEl = document.getElementById(`variant-select-${cardId}`);
-        if (!selectEl) return;
-
-        const selectedOption = selectEl.options[selectEl.selectedIndex];
-        const price = selectedOption.getAttribute('data-price');
-        const selectedSku = selectEl.value;
-
-        // Обновляем цену
-        const priceEl = document.getElementById(`price-${cardId}`);
-        if (priceEl && price) {
-            priceEl.textContent = `฿${price}`;
-        }
-
-        // Обновляем SKU на карточке
-        const skuEl = document.getElementById(`sku-${cardId}`);
-        if (skuEl && selectedSku) {
-            skuEl.textContent = selectedSku;
         }
     };
 
@@ -1951,14 +1963,13 @@
             padding: 12px 24px;
             border: 2px solid var(--accent-primary);
             border-radius: 50px;
-            background: #fff8f8;
             color: var(--accent-primary);
             font-size: 1rem;
             font-weight: 600;
             text-align: center;
             display: inline-block;
             width: auto;
-            box-shadow: 0 2px 8px rgba(196, 69, 54, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 120, 131, 0.2);
         `;
             hintDiv.innerHTML = ' Use English letters only';
 
@@ -3248,8 +3259,276 @@
         box-shadow: 0 0 0 3px var(--shadow-color);
     }
 
+    /* ========== ОСНОВНЫЕ СТИЛИ ДЛЯ ВСЕХ УСТРОЙСТВ ========== */
+    /* SKU и название */
+    .product-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .product-sku {
+        font-weight: 600;
+        color: var(--accent-primary);
+        font-size: 0.85rem;
+    }
+
+    .product-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    /* Характеристики Size и Pose */
+    .product-specs-info {
+        display: flex;
+        flex-wrap: wrap;
+        flex-grow: 1;
+        gap: 12px;
+        margin: 8px 0;
+        align-items: end;
+    }
+
+    .spec-info-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        background: transparent;
+        padding: 0;
+        border: none;
+        white-space: normal;
+    }
+
+    .spec-label {
+        font-weight: 700;
+        color: var(--accent-primary);
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        font-size: 0.85rem;
+    }
+
+    .spec-value {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+    }
+
+    /* Убираем старые стили */
+    .product-specs-row {
+        display: none;
+    }
+
+    .spec-separator {
+        display: none;
+    }
+
+    /* Селект вариантов */
+    .variant-selector {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .variant-selector:hover {
+        border-color: var(--accent-primary);
+    }
+
+    .variant-selector:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px var(--shadow-color);
+    }
+
+    /* Описание без рамок */
+    .package-description {
+        background: transparent;
+        padding: 0;
+        margin: 8px 0;
+        border: none;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        color: var(--text-secondary);
+    }
+
+    /* Информационные блоки для пакетов без рамок */
+    .info-badge {
+        background: transparent;
+        padding: 0;
+        margin: 4px 0;
+        font-size: 0.85rem;
+        color: var(--accent-primary);
+        font-weight: 500;
+    }
+
+    .package-items {
+        background: transparent;
+        padding: 4px 0;
+        margin: 4px 0;
+        border: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--accent-primary);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+
+    .package-item {
+        font-size: 0.8rem;
+        padding: 2px 0;
+        padding-left: 16px;
+        position: relative;
+        color: var(--text-secondary);
+    }
+
+    .package-item::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--accent-primary);
+    }
+    /* Окно оформленного заказа */
+    .order-success {
+        display: flex;
+        flex-direction: column;
+        height: 32vh;
+        max-height: 32vh;
+        overflow: hidden;
+        position: fixed;
+        bottom: 34vh;
+        left: 0;
+        right: 0;
+        max-width: 444px;
+        margin-left: auto;
+        margin-right: auto;
+        background: white;
+        border-radius: 40px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+        z-index: 2000;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
+        overflow-y: auto;
+        border-top: 3px solid var(--accent-primary);
+        border-bottom: 3px solid var(--accent-primary);
+        visibility: hidden;
+    }
+
+    .order-success.open {
+        transform: translateY(0);
+        visibility: visible;
+    }
+
+    .order-success-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--accent-primary);
+    }
+
+    .order-success-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .order-success-header .order-number {
+        font-weight: 600;
+        color: var(--red-warning);
+        font-size: 1.95rem;
+        padding-left: 7px;
+    }
+
+    .order-success-info-price {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 0.95rem;
+        display: flex;
+        justify-content: center;
+        line-height: 1.2rem;
+    }
+    .order-success-info-price .order-price {
+        font-weight: 600;
+        color: var(--red-warning);
+        font-size: 1.2rem;
+        padding: 0 7px;
+    }
+
+    .order-success-info-comment {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 0.95rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Стили для фиксации нижней части корзины */
+    .cart-panel {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 180px);
+        max-height: calc(100vh - 180px);
+        overflow: hidden;
+    }
+    .cart-items-scroll {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-right: 5px;
+    }
+    .cart-bottom-fixed {
+        flex-shrink: 0;
+        background: white;
+        border-top: 2px solid var(--accent-primary);
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+    .mobile-cart-panel {
+        display: flex;
+        flex-direction: column;
+        height: 85vh;
+        max-height: 85vh;
+        overflow: hidden;
+    }
+    .mobile-cart-items-scroll {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-right: 5px;
+    }
+    .mobile-cart-bottom-fixed {
+        flex-shrink: 0;
+        background: white;
+        border-top: 2px solid var(--accent-primary);
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .cart-discount-info-inline {
+        background: #fff3e0;
+        padding: 8px 12px;
+        margin: 8px 0;
+        border-radius: 12px;
+        border-left: 3px solid #ff9800;
+    }
+
 
     @media (min-width: 901px) {
+        .cart-panel {
+            display: block;
+        }
         .pc-category-nav {
             display: flex !important;
         }
@@ -3711,271 +3990,6 @@
             left: 0 !important;
             color: var(--accent-primary) !important;
         }
-    }
-
-    /* ========== ОСНОВНЫЕ СТИЛИ ДЛЯ ВСЕХ УСТРОЙСТВ ========== */
-    /* SKU и название */
-    .product-header {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-        margin-bottom: 8px;
-        flex-wrap: wrap;
-    }
-
-    .product-sku {
-        font-weight: 600;
-        color: var(--accent-primary);
-        font-size: 0.85rem;
-    }
-
-    .product-title {
-        font-weight: 700;
-        font-size: 0.9rem;
-        color: var(--text-primary);
-        flex: 1;
-    }
-
-    /* Характеристики Size и Pose */
-    .product-specs-info {
-        display: flex;
-        flex-wrap: wrap;
-        flex-grow: 1;
-        gap: 12px;
-        margin: 8px 0;
-        align-items: end;
-    }
-
-    .spec-info-item {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 4px;
-        background: transparent;
-        padding: 0;
-        border: none;
-        white-space: normal;
-    }
-
-    .spec-label {
-        font-weight: 700;
-        color: var(--accent-primary);
-        background: transparent;
-        padding: 0;
-        margin: 0;
-        font-size: 0.85rem;
-    }
-
-    .spec-value {
-        font-weight: 600;
-        color: var(--text-primary);
-        font-size: 0.85rem;
-    }
-
-    /* Убираем старые стили */
-    .product-specs-row {
-        display: none;
-    }
-
-    .spec-separator {
-        display: none;
-    }
-
-    /* Селект вариантов */
-    .variant-selector {
-        width: 100%;
-        padding: 10px 12px;
-        border: 2px solid var(--border-color);
-        border-radius: 12px;
-        font-size: 0.85rem;
-        background: white;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .variant-selector:hover {
-        border-color: var(--accent-primary);
-    }
-
-    .variant-selector:focus {
-        outline: none;
-        border-color: var(--accent-primary);
-        box-shadow: 0 0 0 3px var(--shadow-color);
-    }
-
-    /* Описание без рамок */
-    .package-description {
-        background: transparent;
-        padding: 0;
-        margin: 8px 0;
-        border: none;
-        font-size: 0.85rem;
-        line-height: 1.4;
-        color: var(--text-secondary);
-    }
-
-    /* Информационные блоки для пакетов без рамок */
-    .info-badge {
-        background: transparent;
-        padding: 0;
-        margin: 4px 0;
-        font-size: 0.85rem;
-        color: var(--accent-primary);
-        font-weight: 500;
-    }
-
-    .package-items {
-        background: transparent;
-        padding: 4px 0;
-        margin: 4px 0;
-        border: none;
-    }
-
-    .info-label {
-        font-weight: 600;
-        color: var(--accent-primary);
-        font-size: 0.85rem;
-        margin-bottom: 4px;
-    }
-
-    .package-item {
-        font-size: 0.8rem;
-        padding: 2px 0;
-        padding-left: 16px;
-        position: relative;
-        color: var(--text-secondary);
-    }
-
-    .package-item::before {
-        content: "•";
-        position: absolute;
-        left: 0;
-        color: var(--accent-primary);
-    }
-    /* Окно оформленного заказа */
-    .order-success {
-        display: flex;
-        flex-direction: column;
-        height: 32vh;
-        max-height: 32vh;
-        overflow: hidden;
-        position: fixed;
-        bottom: 34vh;
-        left: 0;
-        right: 0;
-        max-width: 444px;
-        margin-left: auto;
-        margin-right: auto;
-        background: white;
-        border-radius: 40px;
-        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
-        padding: 1.5rem;
-        z-index: 2000;
-        transform: translateY(100%);
-        transition: transform 0.3s ease-in-out;
-        overflow-y: auto;
-        border-top: 3px solid var(--accent-primary);
-        border-bottom: 3px solid var(--accent-primary);
-        visibility: hidden;
-    }
-
-    .order-success.open {
-        transform: translateY(0);
-        visibility: visible;
-    }
-
-    .order-success-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid var(--accent-primary);
-    }
-
-    .order-success-info {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .order-success-header .order-number {
-        font-weight: 600;
-        color: var(--red-warning);
-        font-size: 1.95rem;
-        padding-left: 7px;
-    }
-
-    .order-success-info-price {
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 0.95rem;
-        display: flex;
-        justify-content: center;
-        line-height: 1.2rem;
-    }
-    .order-success-info-price .order-price {
-        font-weight: 600;
-        color: var(--red-warning);
-        font-size: 1.2rem;
-        padding: 0 7px;
-    }
-
-    .order-success-info-comment {
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 0.95rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    /* Стили для фиксации нижней части корзины */
-    .cart-panel {
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - 180px);
-        max-height: calc(100vh - 180px);
-        overflow: hidden;
-    }
-    .cart-items-scroll {
-        flex: 1;
-        overflow-y: auto;
-        margin-bottom: 0;
-        padding-right: 5px;
-    }
-    .cart-bottom-fixed {
-        flex-shrink: 0;
-        background: white;
-        border-top: 2px solid var(--accent-primary);
-        margin-top: 12px;
-        padding-top: 12px;
-    }
-    .mobile-cart-panel {
-        display: flex;
-        flex-direction: column;
-        height: 85vh;
-        max-height: 85vh;
-        overflow: hidden;
-    }
-    .mobile-cart-items-scroll {
-        flex: 1;
-        overflow-y: auto;
-        margin-bottom: 0;
-        padding-right: 5px;
-    }
-    .mobile-cart-bottom-fixed {
-        flex-shrink: 0;
-        background: white;
-        border-top: 2px solid var(--accent-primary);
-        margin-top: 12px;
-        padding-top: 12px;
-    }
-
-    .cart-discount-info-inline {
-        background: #fff3e0;
-        padding: 8px 12px;
-        margin: 8px 0;
-        border-radius: 12px;
-        border-left: 3px solid #ff9800;
     }
 </style>
 </body>
