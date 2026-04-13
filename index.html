@@ -2295,9 +2295,9 @@
         setupDateFields();
         setupInputRestrictions(); // Добавляем ограничения при вводе
         addFormHint(); // Добавляем подсказку
-        resetStickyCartTop();
         // TODO временно
         updateCartUI();
+        setTimeout(() => resetStickyCartTop(), 500);
     });
 
     // Добавляем кэширование изображений
@@ -3478,8 +3478,8 @@
     .cart-panel {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 180px);
-        max-height: calc(100vh - 180px);
+        height: calc(100vh - 150px);
+        max-height: calc(100vh - 150px);
         overflow: hidden;
     }
     .cart-items-scroll {
@@ -3526,9 +3526,6 @@
 
 
     @media (min-width: 901px) {
-        .cart-panel {
-            display: block;
-        }
         .pc-category-nav {
             display: flex !important;
         }
