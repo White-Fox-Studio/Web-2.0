@@ -28,6 +28,10 @@
     {
       "src": "FOOTER_v1.0_2026-04-20.pdf",
       "use": "@vercel/static"
+    },
+    {
+      "src": "favicon.ico",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -54,6 +58,10 @@
     {
       "src": "/FOOTER_v1.0_2026-04-20.pdf",
       "dest": "/FOOTER_v1.0_2026-04-20.pdf"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
     },
     {
       "src": "/(.*)",
