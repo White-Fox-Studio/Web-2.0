@@ -20,6 +20,14 @@
     {
       "src": "index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "v1.0_2026-04-20.pdf",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "FOOTER_v1.0_2026-04-20.pdf",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -38,6 +46,14 @@
     {
       "src": "/api/crm",
       "dest": "/crm.js"
+    },
+    {
+      "src": "/v1.0_2026-04-20.pdf",
+      "dest": "/v1.0_2026-04-20.pdf"
+    },
+    {
+      "src": "/FOOTER_v1.0_2026-04-20.pdf",
+      "dest": "/FOOTER_v1.0_2026-04-20.pdf"
     },
     {
       "src": "/(.*)",

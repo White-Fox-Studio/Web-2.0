@@ -55,6 +55,25 @@
             overflow-x: hidden;
         }
 
+        a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        a:active {
+            color: var(--text-primary);
+        }
+
+        a:visited {
+            color: var(--accent-primary);
+        }
+
         /* Минимальные стили для быстрого отображения */
         .loading-spinner {
             display: none;
@@ -160,20 +179,20 @@
                 </div>
                 <div class="form-row">
                     <div class="form-field privacy-policy">
-                        <input type="checkbox" id="confirmParent">
-                        <span id="confirmParentText"></span>
+                        <input type="checkbox" id="confirmProcessing">
+                        <span id="confirmProcessingText"></span>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-field privacy-policy">
-                        <input type="checkbox" id="confirmPolicy">
-                        <span id="confirmPolicyText"></span>
+                        <input type="checkbox" id="confirmSharing">
+                        <span id="confirmSharingText"></span>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-field privacy-policy">
-                        <input type="checkbox" id="permission">
-                        <span id="permissionText"></span>
+                        <input type="checkbox" id="confirmMarketing">
+                        <span id="confirmMarketingText"></span>
                     </div>
                 </div>
             </div>
@@ -214,16 +233,16 @@
                 <span id="mobile-confirmAllText"></span>
             </div>
             <div class="mobile-field privacy-policy">
-                <input type="checkbox" id="mobile-confirmParent">
-                <span id="mobile-confirmParentText"></span>
+                <input type="checkbox" id="mobile-confirmProcessing">
+                <span id="mobile-confirmProcessingText"></span>
             </div>
             <div class="mobile-field privacy-policy">
-                <input type="checkbox" id="mobile-confirmPolicy">
-                <span id="mobile-confirmPolicyText"></span>
+                <input type="checkbox" id="mobile-confirmSharing">
+                <span id="mobile-confirmSharingText"></span>
             </div>
             <div class="mobile-field privacy-policy">
-                <input type="checkbox" id="mobile-permission">
-                <span id="mobile-permissionText"></span>
+                <input type="checkbox" id="mobile-confirmMarketing">
+                <span id="mobile-confirmMarketingText"></span>
             </div>
         </div>
 
@@ -277,7 +296,7 @@
     </div>
     <div class="footer-copyright">
         <div class="footer-copyright-link">
-            <a href="/copyright">© 2026 White Fox Studio Limited. All Rights Reserved.</a>
+            <a href="/FOOTER_v1.0_2026-04-20.pdf">© 2026 White Fox Studio Limited. All Rights Reserved.</a>
         </div>
         <div class="footer-copyright-info">
             All images, designs, and content are protected by copyright and may not be used without permission.
@@ -371,6 +390,22 @@
     // ===================== LOAD DATA  ============================
     async function sendOrderToBackend(customerData, cartItems) {
         try {
+            const processingEl = isMobile ?
+                document.getElementById('mobile-confirmProcessing') :
+                document.getElementById('confirmProcessing');
+            const processing = processingEl?.checked ?? false;
+
+            const sharingEl = isMobile ?
+                document.getElementById('mobile-confirmSharing') :
+                document.getElementById('confirmSharing');
+            const sharing = sharingEl?.checked ?? false;
+
+            const marketingEl = isMobile ?
+                document.getElementById('mobile-confirmMarketing') :
+                document.getElementById('confirmMarketing');
+            const marketing = marketingEl?.checked ?? false;
+
+
             const response = await fetch('/api/order', {
                 method: 'POST',
                 headers: {
@@ -378,7 +413,10 @@
                 },
                 body: JSON.stringify({
                     customer: customerData,
-                    items: cartItems
+                    items: cartItems,
+                    processing,
+                    sharing,
+                    marketing
                 })
             });
 
@@ -1573,10 +1611,14 @@
         console.log('Is mobile:', isMobile);
 
 
-        const privacyPolicyEl = isMobile ?
-            document.getElementById('mobile-confirmAll') :
-            document.getElementById('confirmAll');
-        const privacyPolicy = privacyPolicyEl?.checked ?? false;
+        const processingEl = isMobile ?
+            document.getElementById('mobile-confirmProcessing') :
+            document.getElementById('confirmProcessing');
+        const processing = processingEl?.checked ?? false;
+        const sharingEl = isMobile ?
+            document.getElementById('mobile-confirmSharing') :
+            document.getElementById('confirmSharing');
+        const sharing = sharingEl?.checked ?? false;
 
         function showError(element) {
             closeMobileCart();
@@ -1586,10 +1628,10 @@
             }, 500);
         }
 
-        if (!privacyPolicy) {
+        if (!processing || !sharing) {
             console.log('Privacy Policy didn`t accepted');
-            showToast('Please read and accept our privacy policy.', 'error');
-            showError(privacyPolicyEl);
+            showToast('Please read privacy policy and accept processing and sharing of your data.', 'error');
+            showError(processing ? sharingEl : processingEl);
             return;
         }
 
@@ -1976,19 +2018,19 @@
     const privacyPolicyText = {
         en: {
             all: 'Confirm All',
-            confirmParent: 'I confirm that I am the parent or legal guardian of the child. I consent to the collection and processing of personal data of myself and my child, as described in the Privacy Policy.',
-            confirmPolicy: 'I consent to the transfer, storage, and processing of personal data of myself and my child by third-party service providers (including printing partners and secure cloud storage), as described in the Privacy Policy.',
-            permission: 'I grant permission to White Fox Studio Limited to use photographs of my child for portfolio, social media, and promotional purposes. I understand that no personally identifiable information will be published.'
+            confirmProcessing: 'I confirm that I am the parent or legal guardian of the child. I consent to the collection and processing of personal data of myself and my child, as described in the Privacy Policy.',
+            confirmSharing: 'I consent to the transfer, storage, and processing of personal data of myself and my child by third-party service providers (including printing partners and secure cloud storage), as described in the Privacy Policy.',
+            confirmMarketing: 'I grant permission to White Fox Studio Limited to use photographs of my child for portfolio, social media, and promotional purposes. I understand that no personally identifiable information will be published.'
         },
         th: {
             all: 'ยืนยันทั้งหมด',
-            confirmParent: 'ข้าพเจ้าขอรับรองและยืนยันว่าข้าพเจ้าเป็นบิดา มารดา หรือผู้ปกครองโดยชอบด้วยกฎหมายของเด็กดังกล่าว\n' +
+            confirmProcessing: 'ข้าพเจ้าขอรับรองและยืนยันว่าข้าพเจ้าเป็นบิดา มารดา หรือผู้ปกครองโดยชอบด้วยกฎหมายของเด็กดังกล่าว\n' +
                 'และให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเก็บรวบรวม ใช้ และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าและของเด็ก ตามรายละเอียดที่กำหนดไว้ในนโยบายความเป็นส่วนตัว (Privacy Policy)',
-            confirmPolicy: 'ข้าพเจ้าให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเปิดเผย โอน จัดเก็บ\n' +
+            confirmSharing: 'ข้าพเจ้าให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเปิดเผย โอน จัดเก็บ\n' +
                 'และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าและของเด็กแก่/โดยผู้ให้บริการบุคคลที่สาม\n' +
                 '(รวมถึงแต่ไม่จำกัดเพียงพันธมิตรด้านการพิมพ์และผู้ให้บริการระบบจัดเก็บข้อมูลบนคลาวด์ที่มีความปลอดภัย)\n' +
                 'ทั้งนี้ตามรายละเอียดที่กำหนดไว้ในนโยบายความเป็นส่วนตัว (Privacy Policy)',
-            permission: 'ข้าพเจ้าขอให้ความยินยอมแก่บริษัท White Fox Studio Limited ในการใช้ภาพถ่ายของเด็กเพื่อวัตถุประสงค์ด้านผลงาน (Portfolio) การประชาสัมพันธ์ และสื่อสังคมออนไลน์\n' +
+            confirmMarketing: 'ข้าพเจ้าขอให้ความยินยอมแก่บริษัท White Fox Studio Limited ในการใช้ภาพถ่ายของเด็กเพื่อวัตถุประสงค์ด้านผลงาน (Portfolio) การประชาสัมพันธ์ และสื่อสังคมออนไลน์\n' +
                 'ทั้งนี้ บริษัทตกลงว่าจะไม่เปิดเผยข้อมูลส่วนบุคคลใด ๆ ที่สามารถระบุตัวตนของเด็กได้โดยตรง (Personally Identifiable Information)'
         }
     }
@@ -1997,20 +2039,20 @@
         const textBlocks = privacyPolicyText[key];
         for (let key of Object.keys(textBlocks)) {
             textBlocks[key] = textBlocks[key].split('Privacy Policy').join(
-                '<a href="privacy-policy">Privacy Policy</a>'
+                '<a href="/v1.0_2026-04-20.pdf" target="_blank">Privacy Policy</a>'
             );
         }
     }
 
     function synchronizePrivacyPolicy(mobile = false) {
-        const fields = ['confirmAll','confirmParent', 'confirmPolicy', 'permission'].map(
+        const fields = ['confirmAll','confirmProcessing', 'confirmSharing', 'confirmMarketing'].map(
             (key) => document.getElementById(key)
         );
         const mobileFields = [
             'mobile-confirmAll',
-            'mobile-confirmParent',
-            'mobile-confirmPolicy',
-            'mobile-permission'
+            'mobile-confirmProcessing',
+            'mobile-confirmSharing',
+            'mobile-confirmMarketing'
         ].map((key) => document.getElementById(key));
 
         const source = mobile ? mobileFields : fields;
@@ -2028,13 +2070,13 @@
         const confirmAll = document.getElementById('confirmAll');
         const mobileConfirmAll = document.getElementById('mobile-confirmAll');
 
-        const fields = ['confirmParent', 'confirmPolicy', 'permission'].map(
+        const fields = ['confirmProcessing', 'confirmSharing', 'confirmMarketing'].map(
             (key) => document.getElementById(key)
         );
         const mobileFields = [
-            'mobile-confirmParent',
-            'mobile-confirmPolicy',
-            'mobile-permission'
+            'mobile-confirmProcessing',
+            'mobile-confirmSharing',
+            'mobile-confirmMarketing'
         ].map((key) => document.getElementById(key));
 
         confirmAll.addEventListener('change', e => {
@@ -2088,26 +2130,26 @@
 
     function renderPrivacyPolicy() {
         const all = document.getElementById('confirmAllText')
-        const confirmParent = document.getElementById('confirmParentText');
-        const confirmPolicy = document.getElementById('confirmPolicyText');
-        const permission = document.getElementById('permissionText');
+        const confirmProcessing = document.getElementById('confirmProcessingText');
+        const confirmSharing = document.getElementById('confirmSharingText');
+        const confirmMarketing = document.getElementById('confirmMarketingText');
 
         const mobileAll = document.getElementById('mobile-confirmAllText');
-        const mobileConfirmParent = document.getElementById('mobile-confirmParentText');
-        const mobileConfirmPolicy = document.getElementById('mobile-confirmPolicyText');
-        const mobilePermission = document.getElementById('mobile-permissionText');
+        const mobileconfirmProcessing = document.getElementById('mobile-confirmProcessingText');
+        const mobileconfirmSharing = document.getElementById('mobile-confirmSharingText');
+        const mobileconfirmMarketing = document.getElementById('mobile-confirmMarketingText');
 
         const text = currentLang === 'th' ? privacyPolicyText.th : privacyPolicyText.en;
 
         all.innerHTML = text.all
-        confirmParent.innerHTML = text.confirmParent;
-        confirmPolicy.innerHTML = text.confirmPolicy;
-        permission.innerHTML = text.permission;
+        confirmProcessing.innerHTML = text.confirmProcessing;
+        confirmSharing.innerHTML = text.confirmSharing;
+        confirmMarketing.innerHTML = text.confirmMarketing;
 
         mobileAll.innerHTML = text.all;
-        mobileConfirmParent.innerHTML = text.confirmParent;
-        mobileConfirmPolicy.innerHTML = text.confirmPolicy;
-        mobilePermission.innerHTML = text.permission;
+        mobileconfirmProcessing.innerHTML = text.confirmProcessing;
+        mobileconfirmSharing.innerHTML = text.confirmSharing;
+        mobileconfirmMarketing.innerHTML = text.confirmMarketing;
     }
 
     // ===================== ОГРАНИЧЕНИЯ ПРИ ВВОДЕ =====================
