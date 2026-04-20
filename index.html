@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>White Fox Studio — แคตตาล็อกสินค้า</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <!-- Preconnect to critical domains -->
     <link rel="preconnect" href="https://bgawfptgxcwhggbdrxhv.supabase.co">
@@ -2537,6 +2538,9 @@
         currentLang = currentLang === 'th' ? 'en' : 'th';
         document.getElementById('lang-icon').textContent = currentLang === 'th' ? '🇹🇭' : '🇬🇧';
         document.getElementById('lang-text').textContent = currentLang === 'th' ? 'TH' : 'EN';
+
+        document.title = 'White Fox Studio — ' +
+            (currentLang === 'th' ? 'แคตตาล็อกสินค้า' : 'Product catalog');
 
         if (products.length > 0) {
             renderCategories();
