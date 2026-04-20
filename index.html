@@ -1984,6 +1984,30 @@
     }
 
     // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
+    function synchronizeForms () {
+
+        const fields = [
+            'clientName',
+            'clientPhone',
+            'clientLine',
+            'studentFirstName',
+            'studentLastName',
+            'birthdate',
+            'classGrade',
+        ];
+        fields.forEach(key => {
+            const mobileKey = 'mobile-'+key;
+            const input = document.getElementById(key);
+            const mobileInput = document.getElementById(mobileKey);
+            input.addEventListener('input', (e) => {
+                mobileInput.value = input.value;
+            })
+            mobileInput.addEventListener('input', (e) => {
+                input.value = mobileInput.value
+            })
+        })
+    }
+
     window.sendToCRM = async function () {
 
         // Получаем значения полей с отладкой
@@ -2294,6 +2318,7 @@
         document.getElementById('overlay')?.addEventListener('click', closeMobileCart);
         setupDateFields();
         setupInputRestrictions(); // Добавляем ограничения при вводе
+        synchronizeForms();
         addFormHint(); // Добавляем подсказку
         // TODO временно
         updateCartUI();
