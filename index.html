@@ -55,6 +55,25 @@
             overflow-x: hidden;
         }
 
+        a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        a:active {
+            color: var(--text-primary);
+        }
+
+        a:visited {
+            color: var(--accent-primary);
+        }
+
         /* Минимальные стили для быстрого отображения */
         .loading-spinner {
             display: none;
@@ -113,7 +132,7 @@
         <!-- Desktop form -->
         <div class="desktop-form">
             <div class="form-section">
-                <h3>Parent Information</h3>
+                <h3>Parent Information <span class="form-hint">(Please Use English letters only)</span></h3>
                 <div class="form-row">
                     <div class="form-field">
                         <input type="text" id="clientName" placeholder="Full Name">
@@ -129,7 +148,7 @@
                 </div>
             </div>
             <div class="form-section">
-                <h3>Student Information</h3>
+                <h3>Student Information<span class="form-hint">(Please Use English letters only)</span></h3>
                 <div class="form-row">
                     <div class="form-field">
                         <input type="text" id="studentFirstName" placeholder="Student First Name">
@@ -150,11 +169,38 @@
                     </div>
                 </div>
             </div>
+            <div class="form-section">
+                <h3>Consent To Process Personal Data</h3>
+                <div class="form-row">
+                    <div class="form-field privacy-policy all">
+                        <input type="checkbox" id="confirmAll">
+                        <span id="confirmAllText"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field privacy-policy">
+                        <input type="checkbox" id="confirmProcessing">
+                        <span id="confirmProcessingText"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field privacy-policy">
+                        <input type="checkbox" id="confirmSharing">
+                        <span id="confirmSharingText"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field privacy-policy">
+                        <input type="checkbox" id="confirmMarketing">
+                        <span id="confirmMarketingText"></span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Mobile form -->
         <div class="mobile-form">
-            <h3>Parent Information</h3>
+            <h3>Parent Information<span class="form-hint">(Please Use English letters only)</span></h3>
             <div class="mobile-field">
                 <input type="text" id="mobile-clientName" placeholder="Full Name">
             </div>
@@ -164,7 +210,7 @@
             <div class="mobile-field">
                 <input type="text" id="mobile-clientLine" placeholder="Line ID">
             </div>
-            <h3>Student Information</h3>
+            <h3>Student Information<span class="form-hint">(Please Use English letters only)</span></h3>
             <div class="mobile-field">
                 <input type="text" id="mobile-studentFirstName" placeholder="Student First Name">
             </div>
@@ -179,6 +225,24 @@
             </div>
             <div class="mobile-field">
                 <input type="text" id="mobile-classGrade" placeholder="Class/Grade">
+            </div>
+
+            <h3>Consent To Process Personal Data</h3>
+            <div class="mobile-field privacy-policy all">
+                <input type="checkbox" id="mobile-confirmAll">
+                <span id="mobile-confirmAllText"></span>
+            </div>
+            <div class="mobile-field privacy-policy">
+                <input type="checkbox" id="mobile-confirmProcessing">
+                <span id="mobile-confirmProcessingText"></span>
+            </div>
+            <div class="mobile-field privacy-policy">
+                <input type="checkbox" id="mobile-confirmSharing">
+                <span id="mobile-confirmSharingText"></span>
+            </div>
+            <div class="mobile-field privacy-policy">
+                <input type="checkbox" id="mobile-confirmMarketing">
+                <span id="mobile-confirmMarketingText"></span>
             </div>
         </div>
 
@@ -217,6 +281,25 @@
                     OK - Complete Order <span id="cart-button-price">(0 THB)</span>
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <div class="footer-info">
+        <div class="footer-info-address">
+            <p class="footer-info-address-line">White Fox Studio Limited</p>
+            <p class="footer-info-address-line">Company Registration No: 0835568014372</p>
+            <p class="footer-info-address-line wrap">Address: 103/53 Moo 6, Ratsada, Mueang Phuket, Phuket 83000, Thailand</p>
+        </div>
+        <div class="footer-info-mail">Contact: <a href="mailto:whitefoxsupport@gmail.com">whitefoxsupport@gmail.com</a> </div>
+    </div>
+    <div class="footer-copyright">
+        <div class="footer-copyright-link">
+            <a href="/FOOTER_v1.0_2026-04-20.pdf">© 2026 White Fox Studio Limited. All Rights Reserved.</a>
+        </div>
+        <div class="footer-copyright-info">
+            All images, designs, and content are protected by copyright and may not be used without permission.
         </div>
     </div>
 </div>
@@ -293,6 +376,10 @@
     let isMobile = window.innerWidth <= 900;
     let scrolled = false;
 
+    function updateIsMobile() {
+        isMobile = window.innerWidth <= 900;
+    }
+
     // ===================== ИНИЦИАЛИЗАЦИЯ =====================
     let categories = [];
     let products = [];
@@ -303,6 +390,22 @@
     // ===================== LOAD DATA  ============================
     async function sendOrderToBackend(customerData, cartItems) {
         try {
+            const processingEl = isMobile ?
+                document.getElementById('mobile-confirmProcessing') :
+                document.getElementById('confirmProcessing');
+            const processing = processingEl?.checked ?? false;
+
+            const sharingEl = isMobile ?
+                document.getElementById('mobile-confirmSharing') :
+                document.getElementById('confirmSharing');
+            const sharing = sharingEl?.checked ?? false;
+
+            const marketingEl = isMobile ?
+                document.getElementById('mobile-confirmMarketing') :
+                document.getElementById('confirmMarketing');
+            const marketing = marketingEl?.checked ?? false;
+
+
             const response = await fetch('/api/order', {
                 method: 'POST',
                 headers: {
@@ -310,7 +413,10 @@
                 },
                 body: JSON.stringify({
                     customer: customerData,
-                    items: cartItems
+                    items: cartItems,
+                    processing,
+                    sharing,
+                    marketing
                 })
             });
 
@@ -987,8 +1093,6 @@
         const variant = prod.variants.find(v => v.sku === selectedSku);
         prod.selected = variant;
 
-        console.log(prod, variant);
-
         const price = variant.price;
         const description = currentLang === 'th' ? (variant.descriptions_th || '') : (variant.descriptions || '');;
         const imageUrl = variant.image_url || prod.image_url || '';
@@ -1295,6 +1399,21 @@
         showToast(`Added to cart: ${name}`);
     };
 
+    function itemIsPackageL(item) {
+        if (item.isPackageL) {
+            return true;
+        }
+        const skuLower = (item.sku || '').toLowerCase();
+        const name = currentLang === 'th' ? item.name_th : item.name_en
+        const nameLower = (name || '').toLowerCase();
+        if (skuLower === 'package-l' || skuLower === 'l' ||
+            nameLower.includes('package l')) {
+            item.isPackageL = true;
+            return true;
+        }
+        return false;
+    }
+
     function getCartData() {
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0).toString();
         let productsTotal = 0;
@@ -1303,20 +1422,9 @@
 
         cart.forEach(item => {
             const itemTotal = item.price * item.quantity;
-            if (item.isPackage) {
+            if (itemIsPackageL(item)) {
                 packagesTotal += itemTotal;
-                if (item.isPackageL === true) {
-                    hasPackageL = true;
-                } else {
-                    const skuLower = (item.sku || '').toLowerCase();
-                    const name = currentLang === 'th' ? item.name_th : item.name_en
-                    const nameLower = (name || '').toLowerCase();
-                    if (skuLower === 'package-l' || skuLower === 'l' ||
-                        nameLower.includes('package l')) {
-                        hasPackageL = true;
-                        item.isPackageL = true;
-                    }
-                }
+                hasPackageL = true;
             } else {
                 productsTotal += itemTotal;
             }
@@ -1349,9 +1457,7 @@
         const name = currentLang === 'th' ? item.name_th : item.name_en
         const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
 
-        const isPackageLItem = item.isPackage && (item.isPackageL === true ||
-            (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
-            (name && name.toLowerCase().includes('package l')));
+        const isPackageLItem = itemIsPackageL(item)
 
         const packageLBadge = isPackageLItem ?
             '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
@@ -1503,6 +1609,31 @@
 
         console.log('=== CHECK FORM START ===');
         console.log('Is mobile:', isMobile);
+
+
+        const processingEl = isMobile ?
+            document.getElementById('mobile-confirmProcessing') :
+            document.getElementById('confirmProcessing');
+        const processing = processingEl?.checked ?? false;
+        const sharingEl = isMobile ?
+            document.getElementById('mobile-confirmSharing') :
+            document.getElementById('confirmSharing');
+        const sharing = sharingEl?.checked ?? false;
+
+        function showError(element) {
+            closeMobileCart();
+            setTimeout(() => {
+                element.focus();
+                element.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }, 500);
+        }
+
+        if (!processing || !sharing) {
+            console.log('Privacy Policy didn`t accepted');
+            showToast('Please read privacy policy and accept processing and sharing of your data.', 'error');
+            showError(processing ? sharingEl : processingEl);
+            return;
+        }
 
         // Все обязательные поля анкеты
         const fields = {
@@ -1837,7 +1968,7 @@
         document.body.style.overflow = '';
     };
 
-    // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
+    // ===================== ФУНКЦИИ ФОРМЫ =====================
     function formatDateInput(inputElement) {
         if (!inputElement) return;
 
@@ -1882,6 +2013,143 @@
         if (!value) return true;
         const classNum = parseInt(value, 10);
         return !isNaN(classNum) && classNum >= 1 && classNum <= 11;
+    }
+
+    const privacyPolicyText = {
+        en: {
+            all: 'Confirm All',
+            confirmProcessing: 'I confirm that I am the parent or legal guardian of the child. I consent to the collection and processing of personal data of myself and my child, as described in the Privacy Policy.',
+            confirmSharing: 'I consent to the transfer, storage, and processing of personal data of myself and my child by third-party service providers (including printing partners and secure cloud storage), as described in the Privacy Policy.',
+            confirmMarketing: 'I grant permission to White Fox Studio Limited to use photographs of my child for portfolio, social media, and promotional purposes. I understand that no personally identifiable information will be published.'
+        },
+        th: {
+            all: 'ยืนยันทั้งหมด',
+            confirmProcessing: 'ข้าพเจ้าขอรับรองและยืนยันว่าข้าพเจ้าเป็นบิดา มารดา หรือผู้ปกครองโดยชอบด้วยกฎหมายของเด็กดังกล่าว\n' +
+                'และให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเก็บรวบรวม ใช้ และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าและของเด็ก ตามรายละเอียดที่กำหนดไว้ในนโยบายความเป็นส่วนตัว (Privacy Policy)',
+            confirmSharing: 'ข้าพเจ้าให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเปิดเผย โอน จัดเก็บ\n' +
+                'และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าและของเด็กแก่/โดยผู้ให้บริการบุคคลที่สาม\n' +
+                '(รวมถึงแต่ไม่จำกัดเพียงพันธมิตรด้านการพิมพ์และผู้ให้บริการระบบจัดเก็บข้อมูลบนคลาวด์ที่มีความปลอดภัย)\n' +
+                'ทั้งนี้ตามรายละเอียดที่กำหนดไว้ในนโยบายความเป็นส่วนตัว (Privacy Policy)',
+            confirmMarketing: 'ข้าพเจ้าขอให้ความยินยอมแก่บริษัท White Fox Studio Limited ในการใช้ภาพถ่ายของเด็กเพื่อวัตถุประสงค์ด้านผลงาน (Portfolio) การประชาสัมพันธ์ และสื่อสังคมออนไลน์\n' +
+                'ทั้งนี้ บริษัทตกลงว่าจะไม่เปิดเผยข้อมูลส่วนบุคคลใด ๆ ที่สามารถระบุตัวตนของเด็กได้โดยตรง (Personally Identifiable Information)'
+        }
+    }
+
+    for (let key of Object.keys(privacyPolicyText)) {
+        const textBlocks = privacyPolicyText[key];
+        for (let key of Object.keys(textBlocks)) {
+            textBlocks[key] = textBlocks[key].split('Privacy Policy').join(
+                '<a href="/v1.0_2026-04-20.pdf" target="_blank">Privacy Policy</a>'
+            );
+        }
+    }
+
+    function synchronizePrivacyPolicy(mobile = false) {
+        const fields = ['confirmAll','confirmProcessing', 'confirmSharing', 'confirmMarketing'].map(
+            (key) => document.getElementById(key)
+        );
+        const mobileFields = [
+            'mobile-confirmAll',
+            'mobile-confirmProcessing',
+            'mobile-confirmSharing',
+            'mobile-confirmMarketing'
+        ].map((key) => document.getElementById(key));
+
+        const source = mobile ? mobileFields : fields;
+        const target = mobile ? fields : mobileFields;
+
+        target.forEach((field, index) => {
+            field.checked = source[index].checked;
+        })
+
+        target[0].indeterminate = source[0].indeterminate;
+
+    }
+
+    function initPrivacyPolicy() {
+        const confirmAll = document.getElementById('confirmAll');
+        const mobileConfirmAll = document.getElementById('mobile-confirmAll');
+
+        const fields = ['confirmProcessing', 'confirmSharing', 'confirmMarketing'].map(
+            (key) => document.getElementById(key)
+        );
+        const mobileFields = [
+            'mobile-confirmProcessing',
+            'mobile-confirmSharing',
+            'mobile-confirmMarketing'
+        ].map((key) => document.getElementById(key));
+
+        confirmAll.addEventListener('change', e => {
+            mobileConfirmAll.checked = confirmAll.checked;
+            fields.forEach(field => {
+                field.checked = confirmAll.checked;
+            })
+            synchronizePrivacyPolicy();
+        })
+
+        mobileConfirmAll.addEventListener('change', e => {
+            confirmAll.checked = mobileConfirmAll.checked;
+            mobileFields.forEach(field => {
+                field.checked = mobileConfirmAll.checked;
+            })
+            synchronizePrivacyPolicy(true);
+        })
+
+        fields.forEach(field => {
+            field.addEventListener('change', e => {
+                const values = fields.map((field) => field.checked)
+                const allEqual = new Set(values).size <= 1;
+                if (!allEqual) {
+                    confirmAll.checked = false;
+                    confirmAll.indeterminate = true;
+                } else {
+                    confirmAll.indeterminate = false;
+                    confirmAll.checked = values[0];
+                }
+                synchronizePrivacyPolicy();
+            })
+        })
+
+        mobileFields.forEach(field => {
+            field.addEventListener('change', e => {
+                const values = mobileFields.map((field) => field.checked)
+                const allEqual = new Set(values).size <= 1;
+                if (!allEqual) {
+                    mobileConfirmAll.checked = false;
+                    mobileConfirmAll.indeterminate = true;
+                } else {
+                    mobileConfirmAll.indeterminate = false;
+                    mobileConfirmAll.checked = values[0];
+                }
+                synchronizePrivacyPolicy(true);
+            })
+        })
+
+        renderPrivacyPolicy();
+    }
+
+    function renderPrivacyPolicy() {
+        const all = document.getElementById('confirmAllText')
+        const confirmProcessing = document.getElementById('confirmProcessingText');
+        const confirmSharing = document.getElementById('confirmSharingText');
+        const confirmMarketing = document.getElementById('confirmMarketingText');
+
+        const mobileAll = document.getElementById('mobile-confirmAllText');
+        const mobileconfirmProcessing = document.getElementById('mobile-confirmProcessingText');
+        const mobileconfirmSharing = document.getElementById('mobile-confirmSharingText');
+        const mobileconfirmMarketing = document.getElementById('mobile-confirmMarketingText');
+
+        const text = currentLang === 'th' ? privacyPolicyText.th : privacyPolicyText.en;
+
+        all.innerHTML = text.all
+        confirmProcessing.innerHTML = text.confirmProcessing;
+        confirmSharing.innerHTML = text.confirmSharing;
+        confirmMarketing.innerHTML = text.confirmMarketing;
+
+        mobileAll.innerHTML = text.all;
+        mobileconfirmProcessing.innerHTML = text.confirmProcessing;
+        mobileconfirmSharing.innerHTML = text.confirmSharing;
+        mobileconfirmMarketing.innerHTML = text.confirmMarketing;
     }
 
     // ===================== ОГРАНИЧЕНИЯ ПРИ ВВОДЕ =====================
@@ -1950,40 +2218,31 @@
         }
     }
 
-    function addFormHint() {
+    // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
+    function synchronizeForms () {
 
-        // Находим форму
-        const formContainer = isMobile ? document.querySelector('.mobile-form') : document.querySelector('.desktop-form');
-
-        if (formContainer && !formContainer.querySelector('.form-footer-hint')) {
-            const hintDiv = document.createElement('div');
-            hintDiv.className = 'form-footer-hint';
-            hintDiv.style.cssText = `
-            margin-top: 20px;
-            padding: 12px 24px;
-            border: 2px solid var(--accent-primary);
-            border-radius: 50px;
-            color: var(--accent-primary);
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: center;
-            display: inline-block;
-            width: auto;
-            box-shadow: 0 2px 8px rgba(0, 120, 131, 0.2);
-        `;
-            hintDiv.innerHTML = ' Use English letters only';
-
-            // Создаем контейнер для центрирования
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'text-align: center; margin: 0 auto;';
-            wrapper.appendChild(hintDiv);
-
-            // Добавляем в конец формы
-            formContainer.appendChild(wrapper);
-        }
+        const fields = [
+            'clientName',
+            'clientPhone',
+            'clientLine',
+            'studentFirstName',
+            'studentLastName',
+            'birthdate',
+            'classGrade',
+        ];
+        fields.forEach(key => {
+            const mobileKey = 'mobile-'+key;
+            const input = document.getElementById(key);
+            const mobileInput = document.getElementById(mobileKey);
+            input.addEventListener('input', (e) => {
+                mobileInput.value = input.value;
+            })
+            mobileInput.addEventListener('input', (e) => {
+                input.value = mobileInput.value
+            })
+        })
     }
 
-    // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
     window.sendToCRM = async function () {
 
         // Получаем значения полей с отладкой
@@ -2285,6 +2544,7 @@
         if (cart.length > 0) {
             updateCartUI();
         }
+        renderPrivacyPolicy();
     });
 
     // ===================== ИНИЦИАЛИЗАЦИЯ =====================
@@ -2294,7 +2554,8 @@
         document.getElementById('overlay')?.addEventListener('click', closeMobileCart);
         setupDateFields();
         setupInputRestrictions(); // Добавляем ограничения при вводе
-        addFormHint(); // Добавляем подсказку
+        synchronizeForms();
+        initPrivacyPolicy();
         // TODO временно
         updateCartUI();
         setTimeout(() => resetStickyCartTop(), 500);
@@ -2310,6 +2571,7 @@
     });
 
     window.addEventListener('resize', function() {
+        updateIsMobile();
         resetStickyCartTop();
     });
 
@@ -2562,6 +2824,9 @@
         margin-bottom: 1.2rem;
         padding-bottom: 0.5rem;
         border-bottom: 3px solid var(--accent-primary);
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
     }
 
     .form-row {
@@ -2574,6 +2839,17 @@
     .form-field {
         flex: 1 1 200px;
         position: relative;
+    }
+
+    .form-field.privacy-policy {
+        display: flex;
+        gap: 1rem;
+        padding-left: 1rem;
+    }
+
+    .form-field.privacy-policy input {
+        width: unset;
+        accent-color: var(--accent-primary);
     }
 
     .form-field input, .form-field select {
@@ -2616,6 +2892,8 @@
         font-weight: 700;
         padding-bottom: 0.3rem;
         border-bottom: 2px solid var(--accent-primary);
+        display: flex;
+        flex-direction: column;
     }
 
     .mobile-field {
@@ -2631,6 +2909,17 @@
         font-size: 1rem;
         transition: 0.2s;
         background: white;
+    }
+
+    .mobile-field.privacy-policy {
+        display: flex;
+        gap: 1rem;
+        padding-left: 0.5rem;
+    }
+
+    .mobile-field.privacy-policy input {
+        width: unset;
+        accent-color: var(--accent-primary);
     }
 
     .date-input-wrapper {
@@ -2666,6 +2955,11 @@
         top: 0;
         font-size: 0.75rem;
         color: var(--accent-primary);
+    }
+
+    .form-hint {
+        font-size: 0.7rem;
+        color: var(--text-muted);
     }
 
     .send-crm-btn {
@@ -2756,6 +3050,64 @@
         background: white;
         border-radius: 30px;
         border: 2px dashed var(--border-color);
+    }
+
+    .footer {
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0, 120, 131, 0.08);
+        border-top: 2px solid var(--accent-primary);
+        margin: 0 auto;
+
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        padding: 1rem 2rem;
+        width: 100%;
+
+        font-size: 0.8rem;
+        color: var(--text-primary);
+    }
+
+    .footer-info-address-line {
+        margin: 0 0 6px 0;
+    }
+
+    .footer-info-address-line:last-child {
+        margin-bottom: 0;
+    }
+
+    .footer-copyright {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        text-align: right;
+    }
+
+    .footer-copyright-link {
+        margin-bottom: 6px;
+    }
+
+    .footer-copyright-info {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        max-width: 400px
+    }
+
+    @media (max-width: 768px) {
+        .footer {
+            grid-template-columns: 1fr;
+            padding: 1rem;
+            gap: 1.5rem;
+        }
+
+        .footer-copyright {
+            text-align: left;
+            align-items: flex-start;
+        }
+
+        .footer-copyright-info {
+            max-width: none;
+        }
     }
 
     .product-card {
