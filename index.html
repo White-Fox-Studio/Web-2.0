@@ -113,7 +113,7 @@
         <!-- Desktop form -->
         <div class="desktop-form">
             <div class="form-section">
-                <h3>Parent Information</h3>
+                <h3>Parent Information <span class="form-hint">(Please Use English letters only)</span></h3>
                 <div class="form-row">
                     <div class="form-field">
                         <input type="text" id="clientName" placeholder="Full Name">
@@ -129,7 +129,7 @@
                 </div>
             </div>
             <div class="form-section">
-                <h3>Student Information</h3>
+                <h3>Student Information<span class="form-hint">(Please Use English letters only)</span></h3>
                 <div class="form-row">
                     <div class="form-field">
                         <input type="text" id="studentFirstName" placeholder="Student First Name">
@@ -150,11 +150,38 @@
                     </div>
                 </div>
             </div>
+            <div class="form-section">
+                <h3>Consent To Process Personal Data</h3>
+                <div class="form-row">
+                    <div class="form-field privacy-policy all">
+                        <input type="checkbox" id="confirmAll">
+                        <span id="confirmAllText"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field privacy-policy">
+                        <input type="checkbox" id="confirmParent">
+                        <span id="confirmParentText"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field privacy-policy">
+                        <input type="checkbox" id="confirmPolicy">
+                        <span id="confirmPolicyText"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field privacy-policy">
+                        <input type="checkbox" id="permission">
+                        <span id="permissionText"></span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Mobile form -->
         <div class="mobile-form">
-            <h3>Parent Information</h3>
+            <h3>Parent Information<span class="form-hint">(Please Use English letters only)</span></h3>
             <div class="mobile-field">
                 <input type="text" id="mobile-clientName" placeholder="Full Name">
             </div>
@@ -164,7 +191,7 @@
             <div class="mobile-field">
                 <input type="text" id="mobile-clientLine" placeholder="Line ID">
             </div>
-            <h3>Student Information</h3>
+            <h3>Student Information<span class="form-hint">(Please Use English letters only)</span></h3>
             <div class="mobile-field">
                 <input type="text" id="mobile-studentFirstName" placeholder="Student First Name">
             </div>
@@ -179,6 +206,24 @@
             </div>
             <div class="mobile-field">
                 <input type="text" id="mobile-classGrade" placeholder="Class/Grade">
+            </div>
+
+            <h3>Consent To Process Personal Data</h3>
+            <div class="mobile-field privacy-policy all">
+                <input type="checkbox" id="mobile-confirmAll">
+                <span id="mobile-confirmAllText"></span>
+            </div>
+            <div class="mobile-field privacy-policy">
+                <input type="checkbox" id="mobile-confirmParent">
+                <span id="mobile-confirmParentText"></span>
+            </div>
+            <div class="mobile-field privacy-policy">
+                <input type="checkbox" id="mobile-confirmPolicy">
+                <span id="mobile-confirmPolicyText"></span>
+            </div>
+            <div class="mobile-field privacy-policy">
+                <input type="checkbox" id="mobile-permission">
+                <span id="mobile-permissionText"></span>
             </div>
         </div>
 
@@ -311,6 +356,10 @@
     const mobileNav = document.getElementById('mobileCategoryNav');
     let isMobile = window.innerWidth <= 900;
     let scrolled = false;
+
+    function updateIsMobile() {
+        isMobile = window.innerWidth <= 900;
+    }
 
     // ===================== ИНИЦИАЛИЗАЦИЯ =====================
     let categories = [];
@@ -1006,8 +1055,6 @@
         const variant = prod.variants.find(v => v.sku === selectedSku);
         prod.selected = variant;
 
-        console.log(prod, variant);
-
         const price = variant.price;
         const description = currentLang === 'th' ? (variant.descriptions_th || '') : (variant.descriptions || '');;
         const imageUrl = variant.image_url || prod.image_url || '';
@@ -1525,6 +1572,27 @@
         console.log('=== CHECK FORM START ===');
         console.log('Is mobile:', isMobile);
 
+
+        const privacyPolicyEl = isMobile ?
+            document.getElementById('mobile-confirmAll') :
+            document.getElementById('confirmAll');
+        const privacyPolicy = privacyPolicyEl?.checked ?? false;
+
+        function showError(element) {
+            closeMobileCart();
+            setTimeout(() => {
+                element.focus();
+                element.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }, 500);
+        }
+
+        if (!privacyPolicy) {
+            console.log('Privacy Policy didn`t accepted');
+            showToast('Please read and accept our privacy policy.', 'error');
+            showError(privacyPolicyEl);
+            return;
+        }
+
         // Все обязательные поля анкеты
         const fields = {
             studentFirstName: {
@@ -1858,7 +1926,7 @@
         document.body.style.overflow = '';
     };
 
-    // ===================== ОБНОВЛЕННАЯ ФУНКЦИЯ sendToCRM =====================
+    // ===================== ФУНКЦИИ ФОРМЫ =====================
     function formatDateInput(inputElement) {
         if (!inputElement) return;
 
@@ -1903,6 +1971,143 @@
         if (!value) return true;
         const classNum = parseInt(value, 10);
         return !isNaN(classNum) && classNum >= 1 && classNum <= 11;
+    }
+
+    const privacyPolicyText = {
+        en: {
+            all: 'Confirm All',
+            confirmParent: 'I confirm that I am the parent or legal guardian of the child. I consent to the collection and processing of personal data of myself and my child, as described in the Privacy Policy.',
+            confirmPolicy: 'I consent to the transfer, storage, and processing of personal data of myself and my child by third-party service providers (including printing partners and secure cloud storage), as described in the Privacy Policy.',
+            permission: 'I grant permission to White Fox Studio Limited to use photographs of my child for portfolio, social media, and promotional purposes. I understand that no personally identifiable information will be published.'
+        },
+        th: {
+            all: 'ยืนยันทั้งหมด',
+            confirmParent: 'ข้าพเจ้าขอรับรองและยืนยันว่าข้าพเจ้าเป็นบิดา มารดา หรือผู้ปกครองโดยชอบด้วยกฎหมายของเด็กดังกล่าว\n' +
+                'และให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเก็บรวบรวม ใช้ และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าและของเด็ก ตามรายละเอียดที่กำหนดไว้ในนโยบายความเป็นส่วนตัว (Privacy Policy)',
+            confirmPolicy: 'ข้าพเจ้าให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเปิดเผย โอน จัดเก็บ\n' +
+                'และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าและของเด็กแก่/โดยผู้ให้บริการบุคคลที่สาม\n' +
+                '(รวมถึงแต่ไม่จำกัดเพียงพันธมิตรด้านการพิมพ์และผู้ให้บริการระบบจัดเก็บข้อมูลบนคลาวด์ที่มีความปลอดภัย)\n' +
+                'ทั้งนี้ตามรายละเอียดที่กำหนดไว้ในนโยบายความเป็นส่วนตัว (Privacy Policy)',
+            permission: 'ข้าพเจ้าขอให้ความยินยอมแก่บริษัท White Fox Studio Limited ในการใช้ภาพถ่ายของเด็กเพื่อวัตถุประสงค์ด้านผลงาน (Portfolio) การประชาสัมพันธ์ และสื่อสังคมออนไลน์\n' +
+                'ทั้งนี้ บริษัทตกลงว่าจะไม่เปิดเผยข้อมูลส่วนบุคคลใด ๆ ที่สามารถระบุตัวตนของเด็กได้โดยตรง (Personally Identifiable Information)'
+        }
+    }
+
+    for (let key of Object.keys(privacyPolicyText)) {
+        const textBlocks = privacyPolicyText[key];
+        for (let key of Object.keys(textBlocks)) {
+            textBlocks[key] = textBlocks[key].split('Privacy Policy').join(
+                '<a href="privacy-policy">Privacy Policy</a>'
+            );
+        }
+    }
+
+    function synchronizePrivacyPolicy(mobile = false) {
+        const fields = ['confirmAll','confirmParent', 'confirmPolicy', 'permission'].map(
+            (key) => document.getElementById(key)
+        );
+        const mobileFields = [
+            'mobile-confirmAll',
+            'mobile-confirmParent',
+            'mobile-confirmPolicy',
+            'mobile-permission'
+        ].map((key) => document.getElementById(key));
+
+        const source = mobile ? mobileFields : fields;
+        const target = mobile ? fields : mobileFields;
+
+        target.forEach((field, index) => {
+            field.checked = source[index].checked;
+        })
+
+        target[0].indeterminate = source[0].indeterminate;
+
+    }
+
+    function initPrivacyPolicy() {
+        const confirmAll = document.getElementById('confirmAll');
+        const mobileConfirmAll = document.getElementById('mobile-confirmAll');
+
+        const fields = ['confirmParent', 'confirmPolicy', 'permission'].map(
+            (key) => document.getElementById(key)
+        );
+        const mobileFields = [
+            'mobile-confirmParent',
+            'mobile-confirmPolicy',
+            'mobile-permission'
+        ].map((key) => document.getElementById(key));
+
+        confirmAll.addEventListener('change', e => {
+            mobileConfirmAll.checked = confirmAll.checked;
+            fields.forEach(field => {
+                field.checked = confirmAll.checked;
+            })
+            synchronizePrivacyPolicy();
+        })
+
+        mobileConfirmAll.addEventListener('change', e => {
+            confirmAll.checked = mobileConfirmAll.checked;
+            mobileFields.forEach(field => {
+                field.checked = mobileConfirmAll.checked;
+            })
+            synchronizePrivacyPolicy(true);
+        })
+
+        fields.forEach(field => {
+            field.addEventListener('change', e => {
+                const values = fields.map((field) => field.checked)
+                const allEqual = new Set(values).size <= 1;
+                if (!allEqual) {
+                    confirmAll.checked = false;
+                    confirmAll.indeterminate = true;
+                } else {
+                    confirmAll.indeterminate = false;
+                    confirmAll.checked = values[0];
+                }
+                synchronizePrivacyPolicy();
+            })
+        })
+
+        mobileFields.forEach(field => {
+            field.addEventListener('change', e => {
+                const values = mobileFields.map((field) => field.checked)
+                const allEqual = new Set(values).size <= 1;
+                if (!allEqual) {
+                    mobileConfirmAll.checked = false;
+                    mobileConfirmAll.indeterminate = true;
+                } else {
+                    mobileConfirmAll.indeterminate = false;
+                    mobileConfirmAll.checked = values[0];
+                }
+                synchronizePrivacyPolicy(true);
+            })
+        })
+
+        renderPrivacyPolicy();
+    }
+
+    function renderPrivacyPolicy() {
+        const all = document.getElementById('confirmAllText')
+        const confirmParent = document.getElementById('confirmParentText');
+        const confirmPolicy = document.getElementById('confirmPolicyText');
+        const permission = document.getElementById('permissionText');
+
+        const mobileAll = document.getElementById('mobile-confirmAllText');
+        const mobileConfirmParent = document.getElementById('mobile-confirmParentText');
+        const mobileConfirmPolicy = document.getElementById('mobile-confirmPolicyText');
+        const mobilePermission = document.getElementById('mobile-permissionText');
+
+        const text = currentLang === 'th' ? privacyPolicyText.th : privacyPolicyText.en;
+
+        all.innerHTML = text.all
+        confirmParent.innerHTML = text.confirmParent;
+        confirmPolicy.innerHTML = text.confirmPolicy;
+        permission.innerHTML = text.permission;
+
+        mobileAll.innerHTML = text.all;
+        mobileConfirmParent.innerHTML = text.confirmParent;
+        mobileConfirmPolicy.innerHTML = text.confirmPolicy;
+        mobilePermission.innerHTML = text.permission;
     }
 
     // ===================== ОГРАНИЧЕНИЯ ПРИ ВВОДЕ =====================
@@ -1968,42 +2173,6 @@
                     showToast('Wrong symbol used', 'error');
                 }
             });
-        }
-    }
-
-    function addFormHint() {
-
-        // Находим форму
-        const formContainer = isMobile ? document.querySelector('.mobile-form') : document.querySelector('.desktop-form');
-
-        if (formContainer && !formContainer.querySelector('.form-footer-hint')) {
-            const hintDiv = document.createElement('div');
-            hintDiv.className = 'form-footer-hint';
-            hintDiv.style.cssText = `
-            margin-top: 20px;
-            padding: 12px 24px;
-            border-radius: 50px;
-            color: var(--accent-primary);
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: center;
-            display: inline-block;
-            width: auto;
-            box-shadow: 0 6px 8px rgba(0, 120, 131, 0.2);
-        `;
-            hintDiv.innerHTML = 'Please Use English letters only';
-
-            // Создаем контейнер для центрирования
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'text-align: center; margin: 0 auto;';
-            wrapper.appendChild(hintDiv);
-
-            // Добавляем в конец формы
-            formContainer.appendChild(wrapper);
-            pairContainer = isMobile ? document.querySelector('.desktop-form') : document.querySelector('.mobile-form');
-            if (pairContainer && !pairContainer.querySelector('.form-footer-hint')) {
-                pairContainer.appendChild(wrapper.cloneNode(true))
-            }
         }
     }
 
@@ -2333,6 +2502,7 @@
         if (cart.length > 0) {
             updateCartUI();
         }
+        renderPrivacyPolicy();
     });
 
     // ===================== ИНИЦИАЛИЗАЦИЯ =====================
@@ -2343,7 +2513,7 @@
         setupDateFields();
         setupInputRestrictions(); // Добавляем ограничения при вводе
         synchronizeForms();
-        addFormHint(); // Добавляем подсказку
+        initPrivacyPolicy();
         // TODO временно
         updateCartUI();
         setTimeout(() => resetStickyCartTop(), 500);
@@ -2359,6 +2529,7 @@
     });
 
     window.addEventListener('resize', function() {
+        updateIsMobile();
         resetStickyCartTop();
     });
 
@@ -2611,6 +2782,9 @@
         margin-bottom: 1.2rem;
         padding-bottom: 0.5rem;
         border-bottom: 3px solid var(--accent-primary);
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
     }
 
     .form-row {
@@ -2623,6 +2797,17 @@
     .form-field {
         flex: 1 1 200px;
         position: relative;
+    }
+
+    .form-field.privacy-policy {
+        display: flex;
+        gap: 1rem;
+        padding-left: 1rem;
+    }
+
+    .form-field.privacy-policy input {
+        width: unset;
+        accent-color: var(--accent-primary);
     }
 
     .form-field input, .form-field select {
@@ -2665,6 +2850,8 @@
         font-weight: 700;
         padding-bottom: 0.3rem;
         border-bottom: 2px solid var(--accent-primary);
+        display: flex;
+        flex-direction: column;
     }
 
     .mobile-field {
@@ -2680,6 +2867,17 @@
         font-size: 1rem;
         transition: 0.2s;
         background: white;
+    }
+
+    .mobile-field.privacy-policy {
+        display: flex;
+        gap: 1rem;
+        padding-left: 0.5rem;
+    }
+
+    .mobile-field.privacy-policy input {
+        width: unset;
+        accent-color: var(--accent-primary);
     }
 
     .date-input-wrapper {
@@ -2715,6 +2913,11 @@
         top: 0;
         font-size: 0.75rem;
         color: var(--accent-primary);
+    }
+
+    .form-hint {
+        font-size: 0.7rem;
+        color: var(--text-muted);
     }
 
     .send-crm-btn {
@@ -2821,12 +3024,6 @@
 
         font-size: 0.8rem;
         color: var(--text-primary);
-
-
-
-
-
-
     }
 
     .footer-info-address-line {
