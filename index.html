@@ -78,12 +78,17 @@
         /* Минимальные стили для быстрого отображения */
         .loading-spinner {
             display: none;
-            text-align: center;
-            padding: 40px;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            caret-color: transparent;
         }
 
         .loading-spinner.active {
-            display: block;
+            display: flex;
         }
 
         /* Остальные стили будут загружены после */
@@ -173,12 +178,6 @@
             <div class="form-section">
                 <h3>Consent To Process Personal Data</h3>
                 <div class="form-row">
-                    <div class="form-field privacy-policy all">
-                        <input type="checkbox" id="confirmAll">
-                        <span id="confirmAllText"></span>
-                    </div>
-                </div>
-                <div class="form-row">
                     <div class="form-field privacy-policy">
                         <input type="checkbox" id="confirmProcessing">
                         <span id="confirmProcessingText"></span>
@@ -229,10 +228,6 @@
             </div>
 
             <h3>Consent To Process Personal Data</h3>
-            <div class="mobile-field privacy-policy all">
-                <input type="checkbox" id="mobile-confirmAll">
-                <span id="mobile-confirmAllText"></span>
-            </div>
             <div class="mobile-field privacy-policy">
                 <input type="checkbox" id="mobile-confirmProcessing">
                 <span id="mobile-confirmProcessingText"></span>
@@ -362,6 +357,11 @@
     </div>
 </div>
 
+<!-- Прелоадер -->
+<div class="loading-spinner" id="loading-spinner">
+    <img src="preview_cat_transparent.gif">
+</div>
+
 <!-- Контейнер для остальных стилей (загружаются асинхронно) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" media="print"
       onload="this.media='all'">
@@ -374,11 +374,20 @@
     const topBar = document.getElementById('topBar');
     const pcNav = document.getElementById('pcCategoryNav');
     const mobileNav = document.getElementById('mobileCategoryNav');
+    const loader = document.getElementById('loading-spinner');
     let isMobile = window.innerWidth <= 900;
     let scrolled = false;
 
     function updateIsMobile() {
         isMobile = window.innerWidth <= 900;
+    }
+
+    function loaderOn() {
+        loader.classList.add('active');
+    }
+
+    function loaderOff() {
+        loader.classList.remove('active');
     }
 
     // ===================== ИНИЦИАЛИЗАЦИЯ =====================
@@ -406,6 +415,8 @@
                 document.getElementById('confirmMarketing');
             const marketing = marketingEl?.checked ?? false;
 
+            closeMobileCart();
+            loaderOn();
 
             const response = await fetch('/api/order', {
                 method: 'POST',
@@ -426,6 +437,8 @@
             return result;
         } catch (error) {
             throw new Error(error)
+        } finally {
+            loaderOff();
         }
     }
 
@@ -596,6 +609,7 @@
     async function loadData() {
 
         try {
+            loaderOn();
                 const response = await fetch('/api/catalog');
 
                 if (!response.ok) throw new Error('Ошибка загрузки каталога');
@@ -615,7 +629,9 @@
                         <button onclick="location.reload()" style="margin-top:1rem; padding:0.5rem 2rem;">Reload</button>
                     </div>
                 `;
-            }
+            } finally {
+            loaderOff();
+        }
     }
 
     // ===================== ФУНКЦИИ НАВИГАЦИИ =====================
@@ -1638,6 +1654,12 @@
 
         // Все обязательные поля анкеты
         const fields = {
+            clientName: {
+                element: document.getElementById(isMobile ? 'mobile-clientName' : 'clientName'),
+                label: 'Client Full Name',
+                value: null,
+                validation: 'english'
+            },
             studentFirstName: {
                 element: document.getElementById(isMobile ? 'mobile-studentFirstName' : 'studentFirstName'),
                 label: 'Student First Name',
@@ -1762,7 +1784,7 @@
             const field = errorFields[0]
 
             // Находим первое поле с ошибкой
-            for (const field in errorFields) {
+            for (const field of errorFields) {
                 if (!field.element) continue;
 
                 setTimeout(() => {
@@ -2018,13 +2040,11 @@
 
     const privacyPolicyText = {
         en: {
-            all: 'Confirm All',
             confirmProcessing: 'I confirm that I am the parent or legal guardian of the child. I consent to the collection and processing of personal data of myself and my child, as described in the Privacy Policy.',
             confirmSharing: 'I consent to the transfer, storage, and processing of personal data of myself and my child by third-party service providers (including printing partners and secure cloud storage), as described in the Privacy Policy.',
             confirmMarketing: 'I grant permission to White Fox Studio Limited to use photographs of my child for portfolio, social media, and promotional purposes. I understand that no personally identifiable information will be published.'
         },
         th: {
-            all: 'ยืนยันทั้งหมด',
             confirmProcessing: 'ข้าพเจ้าขอรับรองและยืนยันว่าข้าพเจ้าเป็นบิดา มารดา หรือผู้ปกครองโดยชอบด้วยกฎหมายของเด็กดังกล่าว\n' +
                 'และให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเก็บรวบรวม ใช้ และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าและของเด็ก ตามรายละเอียดที่กำหนดไว้ในนโยบายความเป็นส่วนตัว (Privacy Policy)',
             confirmSharing: 'ข้าพเจ้าให้ความยินยอมโดยชัดแจ้งแก่บริษัทในการเปิดเผย โอน จัดเก็บ\n' +
@@ -2046,11 +2066,10 @@
     }
 
     function synchronizePrivacyPolicy(mobile = false) {
-        const fields = ['confirmAll','confirmProcessing', 'confirmSharing', 'confirmMarketing'].map(
+        const fields = ['confirmProcessing', 'confirmSharing', 'confirmMarketing'].map(
             (key) => document.getElementById(key)
         );
         const mobileFields = [
-            'mobile-confirmAll',
             'mobile-confirmProcessing',
             'mobile-confirmSharing',
             'mobile-confirmMarketing'
@@ -2063,13 +2082,9 @@
             field.checked = source[index].checked;
         })
 
-        target[0].indeterminate = source[0].indeterminate;
-
     }
 
     function initPrivacyPolicy() {
-        const confirmAll = document.getElementById('confirmAll');
-        const mobileConfirmAll = document.getElementById('mobile-confirmAll');
 
         const fields = ['confirmProcessing', 'confirmSharing', 'confirmMarketing'].map(
             (key) => document.getElementById(key)
@@ -2080,48 +2095,14 @@
             'mobile-confirmMarketing'
         ].map((key) => document.getElementById(key));
 
-        confirmAll.addEventListener('change', e => {
-            mobileConfirmAll.checked = confirmAll.checked;
-            fields.forEach(field => {
-                field.checked = confirmAll.checked;
-            })
-            synchronizePrivacyPolicy();
-        })
-
-        mobileConfirmAll.addEventListener('change', e => {
-            confirmAll.checked = mobileConfirmAll.checked;
-            mobileFields.forEach(field => {
-                field.checked = mobileConfirmAll.checked;
-            })
-            synchronizePrivacyPolicy(true);
-        })
-
         fields.forEach(field => {
             field.addEventListener('change', e => {
-                const values = fields.map((field) => field.checked)
-                const allEqual = new Set(values).size <= 1;
-                if (!allEqual) {
-                    confirmAll.checked = false;
-                    confirmAll.indeterminate = true;
-                } else {
-                    confirmAll.indeterminate = false;
-                    confirmAll.checked = values[0];
-                }
                 synchronizePrivacyPolicy();
             })
         })
 
         mobileFields.forEach(field => {
             field.addEventListener('change', e => {
-                const values = mobileFields.map((field) => field.checked)
-                const allEqual = new Set(values).size <= 1;
-                if (!allEqual) {
-                    mobileConfirmAll.checked = false;
-                    mobileConfirmAll.indeterminate = true;
-                } else {
-                    mobileConfirmAll.indeterminate = false;
-                    mobileConfirmAll.checked = values[0];
-                }
                 synchronizePrivacyPolicy(true);
             })
         })
@@ -2130,24 +2111,20 @@
     }
 
     function renderPrivacyPolicy() {
-        const all = document.getElementById('confirmAllText')
         const confirmProcessing = document.getElementById('confirmProcessingText');
         const confirmSharing = document.getElementById('confirmSharingText');
         const confirmMarketing = document.getElementById('confirmMarketingText');
 
-        const mobileAll = document.getElementById('mobile-confirmAllText');
         const mobileconfirmProcessing = document.getElementById('mobile-confirmProcessingText');
         const mobileconfirmSharing = document.getElementById('mobile-confirmSharingText');
         const mobileconfirmMarketing = document.getElementById('mobile-confirmMarketingText');
 
         const text = currentLang === 'th' ? privacyPolicyText.th : privacyPolicyText.en;
 
-        all.innerHTML = text.all
         confirmProcessing.innerHTML = text.confirmProcessing;
         confirmSharing.innerHTML = text.confirmSharing;
         confirmMarketing.innerHTML = text.confirmMarketing;
 
-        mobileAll.innerHTML = text.all;
         mobileconfirmProcessing.innerHTML = text.confirmProcessing;
         mobileconfirmSharing.innerHTML = text.confirmSharing;
         mobileconfirmMarketing.innerHTML = text.confirmMarketing;
@@ -2247,9 +2224,10 @@
     window.sendToCRM = async function () {
 
         // Получаем значения полей с отладкой
-        const clientName = isMobile ?
-            document.getElementById('mobile-clientName')?.value.trim() :
-            document.getElementById('clientName')?.value.trim();
+        const clientNameEl = isMobile ?
+            document.getElementById('mobile-clientName'):
+            document.getElementById('clientName');
+        const clientName = clientNameEl?.value.trim();
 
         const clientPhone = isMobile ?
             document.getElementById('mobile-clientPhone')?.value.trim() :
@@ -2306,20 +2284,24 @@
         }
 
         // Проверяем обязательные поля (включая Line ID и дату рождения)
-        if (!studentFirstName || !studentLastName || !classGrade) {
+        if (!studentFirstName || !studentLastName || !classGrade || !clientName) {
             console.log('Missing fields detected');
             statusDiv.className = 'status-message status-error';
             statusDiv.textContent = 'Please fill all required fields';
 
             // Подсвечиваем незаполненные поля
             const fieldsToCheck = {
+                clientName: isMobile ? 'mobile-clientName' : 'clientName',
                 studentFirstName: isMobile ? 'mobile-studentFirstName' : 'studentFirstName',
                 studentLastName: isMobile ? 'mobile-studentLastName' : 'studentLastName',
                 classGrade: isMobile ? 'mobile-classGrade' : 'classGrade'
             };
+            console.log(fieldsToCheck);
+            console.log(Object.entries(fieldsToCheck))
 
             for (const [key, id] of Object.entries(fieldsToCheck)) {
                 const field = document.getElementById(id);
+                console.log('highlight', field, key, id);
                 if (field && (!field.value || field.value.trim() === '')) {
                     field.style.border = '2px solid #c44536';
                     field.style.backgroundColor = '#fff8f8';
@@ -2330,10 +2312,12 @@
                 }
             }
 
-            const field = !studentFirstName ? studentFirstNameEl :
+            const field = !clientName ? clientNameEl :
+                !studentFirstName ? studentFirstNameEl :
                 !studentLastName ? studentLastNameEl :
                     classGradeEl;
             showError(field)
+            console.log(field)
 
             setTimeout(() => {
                 statusDiv.style.display = 'none';
@@ -2452,15 +2436,6 @@
                 throw new Error(result.error || 'Failed to send order');
             }
 
-            // Показываем информацию о скидке
-            let successMessage = 'Order sent successfully!';
-            if (result.payment_info && result.payment_info.discount_applied > 0) {
-                successMessage = `Order sent! Discount: ${result.payment_info.discount_applied} THB. Total: ${result.payment_info.final_to_pay} THB`;
-            }
-
-            statusDiv.className = 'status-message status-success';
-            statusDiv.textContent = successMessage;
-
             // Очищаем корзину
             cart = [];
             localStorage.setItem('cart', JSON.stringify(cart));
@@ -2511,11 +2486,6 @@
             statusDiv.className = 'status-message status-error';
             statusDiv.textContent = 'Error sending order: ' + (error.message || 'Unknown error');
             showToast('Failed to send order: ' + (error.message || 'Unknown error'), 'error');
-        } finally {
-            // Скрываем статус через 5 секунд
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 5000);
         }
     };
 
@@ -2560,7 +2530,6 @@
         setupInputRestrictions(); // Добавляем ограничения при вводе
         synchronizeForms();
         initPrivacyPolicy();
-        // TODO временно
         updateCartUI();
         setTimeout(() => resetStickyCartTop(), 500);
     });

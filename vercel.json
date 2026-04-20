@@ -32,6 +32,10 @@
     {
       "src": "favicon.ico",
       "use": "@vercel/static"
+    },
+    {
+      "src": "preview_cat_transparent.gif",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -62,6 +66,10 @@
     {
       "src": "/favicon.ico",
       "dest": "/favicon.ico"
+    },
+    {
+      "src": "/preview_cat_transparent.gif",
+      "dest": "/preview_cat_transparent.gif"
     },
     {
       "src": "/(.*)",
