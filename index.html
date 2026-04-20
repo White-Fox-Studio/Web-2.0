@@ -221,6 +221,25 @@
     </div>
 </div>
 
+<div class="footer">
+    <div class="footer-info">
+        <div class="footer-info-address">
+            <p class="footer-info-address-line">White Fox Studio Limited</p>
+            <p class="footer-info-address-line">Company Registration No: 0835568014372</p>
+            <p class="footer-info-address-line wrap">Address: 103/53 Moo 6, Ratsada, Mueang Phuket, Phuket 83000, Thailand</p>
+        </div>
+        <div class="footer-info-mail">Contact: <a href="mailto:whitefoxsupport@gmail.com">whitefoxsupport@gmail.com</a> </div>
+    </div>
+    <div class="footer-copyright">
+        <div class="footer-copyright-link">
+            <a href="/copyright">© 2026 White Fox Studio Limited. All Rights Reserved.</a>
+        </div>
+        <div class="footer-copyright-info">
+            All images, designs, and content are protected by copyright and may not be used without permission.
+        </div>
+    </div>
+</div>
+
 <!-- Mobile cart -->
 <div class="overlay" id="overlay" onclick="closeMobileCart()"></div>
 <button class="mobile-cart-button" id="mobileCartButton" onclick="openMobileCart()">
@@ -2786,6 +2805,70 @@
         background: white;
         border-radius: 30px;
         border: 2px dashed var(--border-color);
+    }
+
+    .footer {
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0, 120, 131, 0.08);
+        border-top: 2px solid var(--accent-primary);
+        margin: 0 auto;
+
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        padding: 1rem 2rem;
+        width: 100%;
+
+        font-size: 0.8rem;
+        color: var(--text-primary);
+
+
+
+
+
+
+    }
+
+    .footer-info-address-line {
+        margin: 0 0 6px 0;
+    }
+
+    .footer-info-address-line:last-child {
+        margin-bottom: 0;
+    }
+
+    .footer-copyright {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        text-align: right;
+    }
+
+    .footer-copyright-link {
+        margin-bottom: 6px;
+    }
+
+    .footer-copyright-info {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        max-width: 400px
+    }
+
+    @media (max-width: 768px) {
+        .footer {
+            grid-template-columns: 1fr;
+            padding: 1rem;
+            gap: 1.5rem;
+        }
+
+        .footer-copyright {
+            text-align: left;
+            align-items: flex-start;
+        }
+
+        .footer-copyright-info {
+            max-width: none;
+        }
     }
 
     .product-card {
