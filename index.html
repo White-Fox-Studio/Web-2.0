@@ -1295,6 +1295,21 @@
         showToast(`Added to cart: ${name}`);
     };
 
+    function itemIsPackageL(item) {
+        if (item.isPackageL) {
+            return true;
+        }
+        const skuLower = (item.sku || '').toLowerCase();
+        const name = currentLang === 'th' ? item.name_th : item.name_en
+        const nameLower = (name || '').toLowerCase();
+        if (skuLower === 'package-l' || skuLower === 'l' ||
+            nameLower.includes('package l')) {
+            item.isPackageL = true;
+            return true;
+        }
+        return false;
+    }
+
     function getCartData() {
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0).toString();
         let productsTotal = 0;
@@ -1303,20 +1318,9 @@
 
         cart.forEach(item => {
             const itemTotal = item.price * item.quantity;
-            if (item.isPackage) {
+            if (itemIsPackageL(item)) {
                 packagesTotal += itemTotal;
-                if (item.isPackageL === true) {
-                    hasPackageL = true;
-                } else {
-                    const skuLower = (item.sku || '').toLowerCase();
-                    const name = currentLang === 'th' ? item.name_th : item.name_en
-                    const nameLower = (name || '').toLowerCase();
-                    if (skuLower === 'package-l' || skuLower === 'l' ||
-                        nameLower.includes('package l')) {
-                        hasPackageL = true;
-                        item.isPackageL = true;
-                    }
-                }
+                hasPackageL = true;
             } else {
                 productsTotal += itemTotal;
             }
@@ -1349,9 +1353,7 @@
         const name = currentLang === 'th' ? item.name_th : item.name_en
         const safeItemId = escapeHtml(item.id).replace(/'/g, "\\'");
 
-        const isPackageLItem = item.isPackage && (item.isPackageL === true ||
-            (item.sku && (item.sku.toLowerCase() === 'package-l' || item.sku.toLowerCase() === 'l')) ||
-            (name && name.toLowerCase().includes('package l')));
+        const isPackageLItem = itemIsPackageL(item)
 
         const packageLBadge = isPackageLItem ?
             '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 16px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;">PACKAGE L</span>' : '';
