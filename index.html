@@ -925,46 +925,57 @@
         return specsHtml;
     }
 
-    function getSpecificationsTemplate(prod) {
-        let specsHtml = '';
+    function getSpecificationsTemplate(variant) {
+
         // Собираем уникальные значения
-        const uniqueSizes = [...new Set(prod.variants.map(v => v.size_label).filter(Boolean))];
-        const uniquePoses = [...new Set(prod.variants.map(v => v.pose).filter(Boolean))];
-        const uniqueColors = [...new Set(prod.variants.map(v => v.color).filter(Boolean))];
+        const size = variant.size_label;
+        const pose = variant.pose;
+        const color = variant.color;
+        const hasSize = size && size !== '';
+        const hasPose = pose && pose !== '';
+        const hasColor = color && color !== '';
 
-        // Добавляем характеристики
-        if (uniqueSizes.length > 0 || uniquePoses.length > 0 || uniqueColors.length > 0) {
-            specsHtml += `<div class="product-specs-info">`;
+        let specsHtml = '';
 
-            if (uniqueSizes.length > 0) {
-                specsHtml += `
+        if (hasSize) {
+            specsHtml += `
                         <div class="spec-info-item">
                             <span class="spec-label">Size:</span>
-                            <span class="spec-value">${uniqueSizes.join(', ')}</span>
+                            <span class="spec-value">${size}</span>
                         </div>
                     `;
-            }
+        }
 
-            if (uniquePoses.length > 0) {
-                specsHtml += `
+        if (hasPose) {
+            specsHtml += `
                         <div class="spec-info-item">
                             <span class="spec-label">Pose:</span>
-                            <span class="spec-value">${uniquePoses.join(', ')}</span>
+                            <span class="spec-value">${pose}</span>
                         </div>
                     `;
-            }
+        }
 
-            if (uniqueColors.length > 0) {
-                specsHtml += `
+        if (hasColor) {
+            specsHtml += `
                         <div class="spec-info-item">
                             <span class="spec-label">Color:</span>
-                            <span class="spec-value">${uniqueColors.join(', ')}</span>
+                            <span class="spec-value">${color}</span>
                         </div>
                     `;
-            }
-
-            specsHtml += `</div>`;
         }
+
+        return specsHtml;
+    }
+
+    function getSpecificationsElementTemplate(variant, id) {
+        let specsHtml = '';
+
+        specsHtml += `<div class="product-specs-info" id="specs-${id}">`;
+
+        specsHtml += getSpecificationsTemplate(variant);
+
+        specsHtml += `</div>`;
+
         return specsHtml;
     }
 
@@ -1037,14 +1048,14 @@
                 let currentDescription = '';
                 // ========== ДЛЯ ОБЫЧНЫХ ТОВАРОВ ==========
                 if (prod.variants && prod.variants.length > 0) {
-                    // ========== БЛОК СПЕЦИФИКАЦИЙ ==========
-                    specsHtml += getSpecificationsTemplate(prod);
                     // ========== ВАРИАНТЫ ТОВАРА ==========
 
-                    // ========== ЦЕНА, КАРТИНКА, ОПИСАНИЕ И ИМЯ ИЗ ТЕКУЩЕГО ВАРИАНТА ===========
                     const selectedVariant = prod.selected || prod.variants[0];
                     if (selectedVariant) {
+                        // ========== БЛОК СПЕЦИФИКАЦИЙ ==========
+                        specsHtml += getSpecificationsElementTemplate(selectedVariant, prod.id);
                         currentPrice = selectedVariant.price;
+                        // ========== ЦЕНА, КАРТИНКА, ОПИСАНИЕ И ИМЯ ИЗ ТЕКУЩЕГО ВАРИАНТА ===========
                         if (selectedVariant.sku) currentSku = selectedVariant.sku;
                         currentDescription = currentLang === 'th' ? (selectedVariant.descriptions_th || '') : (selectedVariant.descriptions || '');
                         currentImage = selectedVariant.image_url || prod.image_url || '';
@@ -1123,8 +1134,8 @@
 
         // Обновляем имя
         const nameEl = document.getElementById(`name-${cardId}`);
-        if (nameEl && name) {
-            nameEl.textContent = name;
+        if (nameEl && displayName) {
+            nameEl.textContent = displayName;
         }
 
         // Обновляем цену
@@ -1147,6 +1158,11 @@
             if (parentDiv) {
                 parentDiv.setAttribute('onclick', `window.open('${imageUrl}', '_blank')`);
             }
+        }
+
+        const specsEl = document.getElementById(`specs-${cardId}`);
+        if (specsEl) {
+            specsEl.innerHTML = getSpecificationsTemplate(variant)
         }
     };
 
