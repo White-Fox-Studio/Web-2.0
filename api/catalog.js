@@ -7,20 +7,22 @@ export default async function handler(req, res) {
         };
 
         // Добавили packRes (запрос пакетов)
-        const [catRes, prodRes, packRes] = await Promise.all([
+        const [catRes, prodRes, giftRes, packRes] = await Promise.all([
             fetch(`${process.env.SUPABASE_URL}/rest/v1/categories?select=*&order=sort_order.asc`, { headers }),
             fetch(`${process.env.SUPABASE_URL}/rest/v1/product_cards?select=*`, { headers }),
+            fetch(`${process.env.SUPABASE_URL}/rest/v1/products?select=*&sku=eq.Z6`, { headers }),
             fetch(`${process.env.SUPABASE_URL}/rest/v1/packages_with_price?select=*&order=sort_order.asc`, { headers })
         ]);
 
         const categories = await catRes.json();
         const products = await prodRes.json();
+        const gift = await giftRes.json();
         const packages = await packRes.json(); // Парсим пакеты
 
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
 
         // Отдаем все 3 массива
-        return res.status(200).json({ categories, products, packages });
+        return res.status(200).json({ categories, products, gift, packages });
     } catch (error) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
